@@ -1,7 +1,7 @@
 // src/services/auth.js
 import axios from 'axios';
 
-const API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/users`; // Adjust to your backend URL if needed
+const API_URL = `${import.meta.env.VITE_BACKEND_URL}/api/users`; // backend url
 
 export const registerUser = async (userData) => {
   const response = await axios.post(`${API_URL}/register`, userData);

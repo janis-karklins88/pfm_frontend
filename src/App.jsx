@@ -1,24 +1,47 @@
 // src/App.jsx
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login/Login';
 import Register from './pages/Register/Register';
+import Dashboard from './pages/Dashboard/Dashboard';
 import PrivateRoute from './components/PrivateRoute';
-import Dashboard from './pages/Dashboard/Dashboard'; // Create this page as needed
+import Layout from './components/Layout';
+import Transactions from './pages/Transactions/Transactions';
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element = {<PrivateRoute><Dashboard/></PrivateRoute> } />
+        {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
-        {/* Add more routes as needed */}
+
+        {/* Protected routes with sidebar layout */}
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+        path="/transactions"
+        element={
+        <PrivateRoute>
+          <Layout>
+            <Transactions />
+          </Layout>
+        </PrivateRoute>
+  }
+/>
+
+        {/* You can add other protected routes using the same Layout */}
+        <Route path="/" element={<Navigate to="/dashboard" />} />
       </Routes>
     </Router>
   );
 }
 
 export default App;
-
-//temp removal <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
