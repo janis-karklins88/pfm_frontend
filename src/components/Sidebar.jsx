@@ -22,8 +22,8 @@ const Sidebar = () => {
             </Link>
           </li>
           <li>
-            <Link to="/reports" className="block text-gray-800 hover:text-gray-600">
-              Reports
+            <Link to="/accounts" className="block text-gray-800 hover:text-gray-600">
+              Accounts
             </Link>
           </li>
           {/* Add more navigation items as needed */}

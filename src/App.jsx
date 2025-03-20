@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 import Transactions from './pages/Transactions/Transactions';
+import Accounts from './pages/Accounts/Accounts';
 
 function App() {
   return (
@@ -35,7 +36,17 @@ function App() {
           </Layout>
         </PrivateRoute>
   }
-/>
+        />
+        <Route 
+          path="/accounts" 
+          element={
+            <PrivateRoute>
+              <Layout>
+                <Accounts />
+              </Layout>
+            </PrivateRoute>
+          } 
+        />
 
         {/* You can add other protected routes using the same Layout */}
         <Route path="/" element={<Navigate to="/dashboard" />} />
