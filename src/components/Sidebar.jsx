@@ -26,6 +26,21 @@ const Sidebar = () => {
               Accounts
             </Link>
           </li>
+          <li>
+            <Link to="/budgets" className="block text-gray-800 hover:text-gray-600">
+              Budgets
+            </Link>
+          </li>
+          <li>
+            <Link to="/savings" className="block text-gray-800 hover:text-gray-600">
+              Savings
+            </Link>
+          </li>
+          <li>
+            <Link to="/recurringexpenses" className="block text-gray-800 hover:text-gray-600">
+              Automatic Payments
+            </Link>
+          </li>
           {/* Add more navigation items as needed */}
         </ul>
       </nav>

@@ -89,13 +89,16 @@ const RecurringExpenseCreationForm = ({
           onChange={(e) => setNewRecExpStartDate(e.target.value)}
           className="border p-2 rounded"
         />
-        <input
-          type="text"
-          value={newRecExpFrequency}
+        <select
+         value={newRecExpFrequency}
           onChange={(e) => setNewRecExpFrequency(e.target.value)}
-          placeholder="Frequency (e.g., Monthly)"
           className="border p-2 rounded"
-        />
+>
+        <option value="">Select Frequency</option>
+        <option value="WEEKLY">Weekly</option>
+        <option value="MONTHLY">Monthly</option>
+        <option value="ANNUALLY">Annually</option>
+        </select>
         <select
           value={newRecExpAccount}
           onChange={(e) => setNewRecExpAccount(e.target.value)}

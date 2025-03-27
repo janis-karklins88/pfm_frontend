@@ -7,6 +7,8 @@ import PrivateRoute from './components/PrivateRoute';
 import Layout from './components/Layout';
 import Transactions from './pages/Transactions/Transactions';
 import Accounts from './pages/Accounts/Accounts';
+import Budgets from './pages/Budgets/Budgets';
+import RecurringExpenses from './pages/RecurringExpenses/RecurringExpenses';
 
 function App() {
   return (
@@ -43,6 +45,26 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <Accounts />
+              </Layout>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/budgets" 
+          element={
+            <PrivateRoute>
+              <Layout>
+                <Budgets />
+              </Layout>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/recurringexpenses" 
+          element={
+            <PrivateRoute>
+              <Layout>
+                <RecurringExpenses />
               </Layout>
             </PrivateRoute>
           } 

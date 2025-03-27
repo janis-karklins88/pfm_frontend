@@ -1,32 +1,25 @@
-// src/pages/Transactions/Transactions.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import TransactionCreationForm from './TransactionCreationForm';
-import RecurringExpenseCreationForm from '../RecurringExpenses/RecurringExpenseCreationForm';
+import RecurringExpenseCreationForm from './RecurringExpenseCreationForm';
 
-const Transactions = () => {
+const RecurringExpenses = () => {
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   const token = localStorage.getItem('token');
 
-  // States for filtering and listing transactions
-  const [transactions, setTransactions] = useState([]);
+  const [recurringExpenses, setRecurringExpenses] = useState([]);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterAccount, setFilterAccount] = useState('');
-  const [error, setError] = useState('');
-
-  // States for accounts and categories (for filters & forms)
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [error, setError] = useState('');
+  const [showCreationForm, setShowCreationForm] = useState(false);
 
-  // Toggle states for creation forms
-  const [showTxnForm, setShowTxnForm] = useState(false);
-  const [showRecExpForm, setShowRecExpForm] = useState(false);
-
-  const fetchTransactions = async () => {
+  // Fetch recurring payments with filtering
+  const fetchRecurringExpenses = async () => {
     try {
-      let url = `${BASE_URL}/api/transactions`;
+      let url = `${BASE_URL}/api/recurring-expenses`;
       const params = new URLSearchParams();
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
@@ -36,11 +29,11 @@ const Transactions = () => {
         url += `?${params.toString()}`;
       }
       const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
-      setTransactions(res.data);
+      setRecurringExpenses(res.data);
       setError('');
     } catch (err) {
-      console.error('Failed to fetch transactions', err);
-      setError('Failed to fetch transactions');
+      console.error('Failed to fetch automatic payments', err);
+      setError('Failed to fetch automatic payments');
     }
   };
 
@@ -49,10 +42,8 @@ const Transactions = () => {
       const url = `${BASE_URL}/api/accounts`;
       const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
       setAccounts(res.data);
-      setError('');
     } catch (err) {
-      console.error('Error fetching accounts:', err);
-      setError('Failed to fetch accounts');
+      console.error('Failed to fetch accounts', err);
     }
   };
 
@@ -61,15 +52,13 @@ const Transactions = () => {
       const url = `${BASE_URL}/api/categories`;
       const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
       setCategories(res.data);
-      setError('');
     } catch (err) {
-      console.error('Error fetching categories:', err);
-      setError('Failed to fetch categories');
+      console.error('Failed to fetch categories', err);
     }
   };
 
   useEffect(() => {
-    fetchTransactions();
+    fetchRecurringExpenses();
   }, [startDate, endDate, filterCategory, filterAccount]);
 
   useEffect(() => {
@@ -79,14 +68,16 @@ const Transactions = () => {
 
   const handleDelete = async (id) => {
     try {
-      await axios.delete(`${BASE_URL}/api/transactions/${id}`, { headers: { Authorization: `Bearer ${token}` } });
-      fetchTransactions();
+      await axios.delete(`${BASE_URL}/api/recurring-expenses/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchRecurringExpenses();
     } catch (err) {
-      setError('Failed to delete transaction');
+      console.error('Failed to delete automatic payment', err);
+      setError('Failed to delete automatic payment');
     }
   };
 
-  // Function to refresh both accounts and categories after a new one is added
   const refreshAccountsAndCategories = () => {
     fetchAccounts();
     fetchCategories();
@@ -94,41 +85,31 @@ const Transactions = () => {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold mb-4">Transactions</h1>
+      <h1 className="text-3xl font-bold mb-4">Automatic Payments</h1>
 
-      {/* Toggle buttons for creation forms */}
-      <div className="mb-4 flex gap-4">
-        <button onClick={() => setShowTxnForm(!showTxnForm)} className="bg-green-500 text-white px-4 py-2 rounded">
-          {showTxnForm ? 'Cancel Transaction' : 'Add Transaction'}
-        </button>
-        
-      </div>
+      {/* Toggle the creation form */}
+      <button
+        onClick={() => setShowCreationForm(!showCreationForm)}
+        className="bg-green-500 text-white px-4 py-2 rounded mb-4"
+      >
+        {showCreationForm ? 'Cancel Payment Creation' : 'Add Payment'}
+      </button>
 
-      {/* Render Transaction Creation Form */}
-      {showTxnForm && (
-        <TransactionCreationForm
-          token={token}
-          BASE_URL={BASE_URL}
-          onTransactionCreated={fetchTransactions}
-          accounts={accounts}
-          categories={categories}
-          refreshAccountsAndCategories={refreshAccountsAndCategories}
-        />
-      )}
-
-      {/* Render Recurring Expense Creation Form */}
-      {showRecExpForm && (
+      {showCreationForm && (
         <RecurringExpenseCreationForm
           token={token}
           BASE_URL={BASE_URL}
-          onExpenseCreated={() => { /* Optionally refresh recurring expense list if needed */ }}
+          onExpenseCreated={() => {
+            fetchRecurringExpenses();
+            setShowCreationForm(false);
+          }}
           accounts={accounts}
           categories={categories}
           refreshAccountsAndCategories={refreshAccountsAndCategories}
         />
       )}
 
-      {error && <p className="text-red-500 mt-4">{error}</p>}
+      {error && <p className="text-red-500">{error}</p>}
 
       {/* Filtering Options */}
       <div className="mb-4 flex flex-wrap gap-2">
@@ -170,42 +151,54 @@ const Transactions = () => {
             </option>
           ))}
         </select>
-        <button onClick={fetchTransactions} className="bg-blue-500 text-white px-4 py-2 rounded">
+        <button
+          onClick={fetchRecurringExpenses}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
           Filter
         </button>
       </div>
 
-      {/* Transactions List */}
+      {/* Recurring Payments List */}
       <table className="min-w-full bg-white">
         <thead>
           <tr>
-            <th className="py-2 px-4 border-b">Date</th>
+            <th className="py-2 px-4 border-b">Name</th>
             <th className="py-2 px-4 border-b">Amount</th>
-            <th className="py-2 px-4 border-b">Category</th>
-            <th className="py-2 px-4 border-b">Type</th>
+            <th className="py-2 px-4 border-b">Frequency</th>
+            <th className="py-2 px-4 border-b">Start Date</th>
+            <th className="py-2 px-4 border-b">Next Due Date</th>
             <th className="py-2 px-4 border-b">Account</th>
-            <th className="py-2 px-4 border-b">Description</th>
+            <th className="py-2 px-4 border-b">Category</th>
             <th className="py-2 px-4 border-b">Actions</th>
           </tr>
         </thead>
         <tbody>
-          {transactions.length === 0 ? (
+          {recurringExpenses.length === 0 ? (
             <tr>
-              <td className="py-2 px-4 border-b" colSpan="6">
-                No transactions found.
+              <td className="py-2 px-4 border-b" colSpan="7">
+                No automatic payments found.
               </td>
             </tr>
           ) : (
-            transactions.map((txn) => (
-              <tr key={txn.id}>
-                <td className="py-2 px-4 border-b">{txn.date}</td>
-                <td className="py-2 px-4 border-b">{txn.amount}</td>
-                <td className="py-2 px-4 border-b">{txn.category?.name || 'N/A'}</td>
-                <td className="py-2 px-4 border-b">{txn.type}</td>
-                <td className="py-2 px-4 border-b">{txn.account?.name || 'N/A'}</td>
-                <td className="py-2 px-4 border-b">{txn.description}</td>
+            recurringExpenses.map((expense) => (
+              <tr key={expense.id}>
+                <td className="py-2 px-4 border-b">{expense.name}</td>
+                <td className="py-2 px-4 border-b">{expense.amount}</td>
+                <td className="py-2 px-4 border-b">{expense.frequency}</td>
+                <td className="py-2 px-4 border-b">{expense.startDate}</td>
+                <td className="py-2 px-4 border-b">{expense.nextDueDate}</td>
                 <td className="py-2 px-4 border-b">
-                  <button onClick={() => handleDelete(txn.id)} className="bg-red-500 text-white px-2 py-1 rounded">
+                  {expense.account?.name || 'N/A'}
+                </td>
+                <td className="py-2 px-4 border-b">
+                  {expense.category?.name || 'N/A'}
+                </td>
+                <td className="py-2 px-4 border-b">
+                  <button
+                    onClick={() => handleDelete(expense.id)}
+                    className="bg-red-500 text-white px-2 py-1 rounded"
+                  >
                     Delete
                   </button>
                 </td>
@@ -218,4 +211,4 @@ const Transactions = () => {
   );
 };
 
-export default Transactions;
+export default RecurringExpenses;
