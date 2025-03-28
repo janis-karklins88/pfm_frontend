@@ -9,6 +9,7 @@ import Transactions from './pages/Transactions/Transactions';
 import Accounts from './pages/Accounts/Accounts';
 import Budgets from './pages/Budgets/Budgets';
 import RecurringExpenses from './pages/RecurringExpenses/RecurringExpenses';
+import Savings from './pages/Savings/Savings';
 
 function App() {
   return (
@@ -65,6 +66,16 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <RecurringExpenses />
+              </Layout>
+            </PrivateRoute>
+          } 
+        />
+        <Route 
+          path="/savings" 
+          element={
+            <PrivateRoute>
+              <Layout>
+                <Savings />
               </Layout>
             </PrivateRoute>
           } 
