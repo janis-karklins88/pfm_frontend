@@ -43,8 +43,12 @@ const TransactionCreationForm = ({
       setNewTxnDescription('');
       onTransactionCreated();
     } catch (err) {
-      console.error('Failed to create transaction', err);
-      setError('Failed to create transaction');
+      console.error('Failed to delete savings goal', err);
+      const errorMsg =
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to delete savings goal';
+    setError(errorMsg);
     }
   };
 
@@ -59,8 +63,12 @@ const TransactionCreationForm = ({
       setNewCategoryName('');
       setShowCategoryModal(false);
     } catch (err) {
-      console.error('Failed to create category', err);
-      setError('Failed to create category');
+      console.error('Failed to delete savings goal', err);
+      const errorMsg =
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to add Category';
+    setError(errorMsg);
     }
   };
 

@@ -58,8 +58,11 @@ const handleAddAccount = async (e) => {
       setNewAccountAmount('');
       fetchAccounts();
     } catch (err) {
-      console.error('Error adding account:', err);
-      setError('Failed to add account');
+      console.error('Failed to add account', err);
+      const errorMsg =
+        err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to acc account';
     }
   };
   
@@ -74,8 +77,11 @@ const handleAddAccount = async (e) => {
       });
       fetchAccounts();
     } catch (err) {
-      console.error('Error deleting account:', err);
-      setError('Failed to delete account');
+      console.error('Failed to delete saccount', err);
+      const errorMsg =
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to delete account';
     }
   };
   
@@ -99,8 +105,11 @@ const handleAddAccount = async (e) => {
       setEditAccountName('');
       fetchAccounts();
     } catch (err) {
-      console.error('Error updating account:', err);
-      setError('Failed to update account');
+      console.error('Failed to update account', err);
+      const errorMsg =
+        err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to update account';
     }
   };
   

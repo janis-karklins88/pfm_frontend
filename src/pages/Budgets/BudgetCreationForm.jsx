@@ -38,8 +38,11 @@ const BudgetCreationForm = ({ token, BASE_URL, onBudgetCreated }) => {
       setNewCategoryName('');
       setShowCategoryModal(false);
     } catch (err) {
-      console.error('Failed to create category', err);
-      setError('Failed to create category');
+      console.error('Failed to add category', err);
+      const errorMsg =
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to add category';
     }
   };
 
@@ -58,8 +61,11 @@ const BudgetCreationForm = ({ token, BASE_URL, onBudgetCreated }) => {
       setError('');
       onBudgetCreated();
     } catch (err) {
-      console.error('Failed to create budget', err);
-      setError('Failed to create budget');
+      console.error('Failed to add budget', err);
+      const errorMsg =
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to add budget';
     }
   };
 

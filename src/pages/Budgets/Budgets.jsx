@@ -61,7 +61,10 @@ const Budgets = () => {
       setTotalSpent(totalSpentMap);
     } catch (err) {
       console.error('Failed to fetch budgets', err);
-      setError('Failed to fetch budgets');
+      const errorMsg =
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to fetch budgets';
     }
   };
 
@@ -88,7 +91,11 @@ const Budgets = () => {
       setEditAmount('');
       fetchBudgets();
     } catch (err) {
-      setError('Failed to update budget amount');
+      console.error('Failed to update budgett', err);
+      const errorMsg =
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to update budget';
     }
   };
 
@@ -123,7 +130,10 @@ const Budgets = () => {
       fetchBudgets();
     } catch (err) {
       console.error('Failed to delete budget', err);
-      setError('Failed to delete budget');
+      const errorMsg =
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to delete budget';
     }
   };
   

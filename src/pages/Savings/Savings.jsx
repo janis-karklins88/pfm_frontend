@@ -60,12 +60,9 @@ const Savings = () => {
     } catch (err) {
       console.error('Failed to delete savings goal', err);
       const errorMsg =
-        err.response &&
-        err.response.data &&
-        err.response.data.message
-          ? err.response.data.message
-          : 'Failed to delete savings goal';
-      setError(errorMsg);
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to delete savings goal';
     }
   };
 
@@ -95,12 +92,9 @@ const Savings = () => {
     } catch (err) {
       console.error('Failed to transfer funds', err);
       const errorMsg =
-        err.response &&
-        err.response.data &&
-        err.response.data.message
-          ? err.response.data.message
-          : 'Failed to transfer funds';
-      setError(errorMsg);
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to transfer funds';
     }
   };
 
@@ -123,12 +117,9 @@ const Savings = () => {
     } catch (err) {
       console.error('Failed to update savings goal', err);
       const errorMsg =
-        err.response &&
-        err.response.data &&
-        err.response.data.message
-          ? err.response.data.message
-          : 'Failed to update savings goal';
-      setError(errorMsg);
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to update savings goal';
     }
   };
 

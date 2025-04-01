@@ -28,7 +28,10 @@ const SavingsGoalCreationForm = ({ token, BASE_URL, onGoalCreated }) => {
       onGoalCreated();
     } catch (err) {
       console.error('Failed to create savings goal', err);
-      setError('Failed to create savings goal');
+      const errorMsg =
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to create savings goal';
     }
   };
 

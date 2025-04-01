@@ -16,7 +16,15 @@ const RecurringExpenses = () => {
   const [error, setError] = useState('');
   const [showCreationForm, setShowCreationForm] = useState(false);
 
-  // Fetch recurring payments with filtering
+  // Inline editing states for amount, next due date, and account
+  const [editAmountId, setEditAmountId] = useState(null);
+  const [editAmount, setEditAmount] = useState('');
+  const [editDueId, setEditDueId] = useState(null);
+  const [editDue, setEditDue] = useState('');
+  const [editAccountId, setEditAccountId] = useState(null);
+  const [editAccount, setEditAccount] = useState('');
+
+  // Fetch recurring expenses with filtering
   const fetchRecurringExpenses = async () => {
     try {
       let url = `${BASE_URL}/api/recurring-expenses`;
@@ -39,8 +47,9 @@ const RecurringExpenses = () => {
 
   const fetchAccounts = async () => {
     try {
-      const url = `${BASE_URL}/api/accounts`;
-      const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(`${BASE_URL}/api/accounts`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setAccounts(res.data);
     } catch (err) {
       console.error('Failed to fetch accounts', err);
@@ -49,8 +58,9 @@ const RecurringExpenses = () => {
 
   const fetchCategories = async () => {
     try {
-      const url = `${BASE_URL}/api/categories`;
-      const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await axios.get(`${BASE_URL}/api/categories`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setCategories(res.data);
     } catch (err) {
       console.error('Failed to fetch categories', err);
@@ -74,13 +84,124 @@ const RecurringExpenses = () => {
       fetchRecurringExpenses();
     } catch (err) {
       console.error('Failed to delete automatic payment', err);
-      setError('Failed to delete automatic payment');
+      const errorMsg =
+        err.response && err.response.data && err.response.data.message
+          ? err.response.data.message
+          : 'Failed to delete automatic payment';
+      setError(errorMsg);
+      
     }
   };
 
-  const refreshAccountsAndCategories = () => {
-    fetchAccounts();
-    fetchCategories();
+  // ----- Inline Edit Handlers for Amount -----
+  const handleEditAmountClick = (expense) => {
+    setEditAmountId(expense.id);
+    setEditAmount(expense.amount);
+  };
+
+  const handleEditAmountSave = async (id) => {
+    try {
+      await axios.patch(
+        `${BASE_URL}/api/recurring-expenses/amount/${id}`,
+        { amount: editAmount },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setEditAmountId(null);
+      setEditAmount('');
+      fetchRecurringExpenses();
+    } catch (err) {
+      console.error('Failed to update amount', err);
+      const errorMsg =
+        err.response && err.response.data && err.response.data.message
+          ? err.response.data.message
+          : 'Failed to update amount';
+      setError(errorMsg);
+    }
+  };
+
+  // ----- Inline Edit Handlers for Next Due Date -----
+  const handleEditDueClick = (expense) => {
+    setEditDueId(expense.id);
+    setEditDue(expense.nextDueDate);
+  };
+
+  const handleEditDueSave = async (id) => {
+    try {
+      await axios.patch(
+        `${BASE_URL}/api/recurring-expenses/name/${id}`,
+        { date: editDue },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setEditDueId(null);
+      setEditDue('');
+      fetchRecurringExpenses();
+    } catch (err) {
+      console.error('Failed to update next due date', err);
+      const errorMsg =
+        err.response && err.response.data && err.response.data.message
+          ? err.response.data.message
+          : 'Failed to update next due date';
+      setError(errorMsg);
+    }
+  };
+
+  // ----- Inline Edit Handlers for Account -----
+  const handleEditAccountClick = (expense) => {
+    setEditAccountId(expense.id);
+    setEditAccount(expense.account?.name || '');
+  };
+
+  const handleEditAccountSave = async (id) => {
+    try {
+      await axios.patch(
+        `${BASE_URL}/api/recurring-expenses/account/${id}`,
+        { accountName: editAccount },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setEditAccountId(null);
+      setEditAccount('');
+      fetchRecurringExpenses();
+    } catch (err) {
+      console.error('Failed to update account', err);
+      const errorMsg =
+        err.response && err.response.data && err.response.data.message
+          ? err.response.data.message
+          : 'Failed to update account';
+      setError(errorMsg);
+    }
+  };
+
+  // ----- Pause/Resume Handlers -----
+  const handlePause = async (id) => {
+    try {
+      await axios.patch(`${BASE_URL}/api/recurring-expenses/${id}/pause`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchRecurringExpenses();
+    } catch (err) {
+      console.error('Failed to pause', err);
+      const errorMsg =
+        err.response && err.response.data && err.response.data.message
+          ? err.response.data.message
+          : 'Failed to pause';
+      setError(errorMsg);
+    }
+  };
+
+  const handleResume = async (id) => {
+    try {
+      await axios.patch(`${BASE_URL}/api/recurring-expenses/${id}/resume`, null, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      fetchRecurringExpenses();
+    } catch (err) {
+      console.error('Failed to resume', err);
+      const errorMsg =
+        err.response && err.response.data && err.response.data.message
+          ? err.response.data.message
+          : 'Failed to resume';
+      setError(errorMsg);
+    }
   };
 
   return (
@@ -105,13 +226,12 @@ const RecurringExpenses = () => {
           }}
           accounts={accounts}
           categories={categories}
-          refreshAccountsAndCategories={refreshAccountsAndCategories}
         />
       )}
 
       {error && <p className="text-red-500">{error}</p>}
 
-      {/* Filtering Options */}
+      {/* Filtering Options (you can remove these later if not needed) */}
       <div className="mb-4 flex flex-wrap gap-2">
         <input
           type="date"
@@ -170,13 +290,14 @@ const RecurringExpenses = () => {
             <th className="py-2 px-4 border-b">Next Due Date</th>
             <th className="py-2 px-4 border-b">Account</th>
             <th className="py-2 px-4 border-b">Category</th>
+            <th className="py-2 px-4 border-b">Status</th>
             <th className="py-2 px-4 border-b">Actions</th>
           </tr>
         </thead>
         <tbody>
           {recurringExpenses.length === 0 ? (
             <tr>
-              <td className="py-2 px-4 border-b" colSpan="7">
+              <td className="py-2 px-4 border-b" colSpan="9">
                 No automatic payments found.
               </td>
             </tr>
@@ -184,17 +305,120 @@ const RecurringExpenses = () => {
             recurringExpenses.map((expense) => (
               <tr key={expense.id}>
                 <td className="py-2 px-4 border-b">{expense.name}</td>
-                <td className="py-2 px-4 border-b">{expense.amount}</td>
+                <td className="py-2 px-4 border-b">
+                  {editAmountId === expense.id ? (
+                    <>
+                      <input
+                        type="number"
+                        step="0.01"
+                        value={editAmount}
+                        onChange={(e) => setEditAmount(e.target.value)}
+                        className="border p-1 rounded"
+                      />
+                      <button
+                        onClick={() => handleEditAmountSave(expense.id)}
+                        className="bg-green-500 text-white px-2 py-1 rounded ml-1"
+                      >
+                        Save
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {expense.amount}
+                      <button
+                        onClick={() => handleEditAmountClick(expense)}
+                        className="bg-blue-500 text-white px-2 py-1 rounded ml-1"
+                      >
+                        Edit
+                      </button>
+                    </>
+                  )}
+                </td>
                 <td className="py-2 px-4 border-b">{expense.frequency}</td>
                 <td className="py-2 px-4 border-b">{expense.startDate}</td>
-                <td className="py-2 px-4 border-b">{expense.nextDueDate}</td>
                 <td className="py-2 px-4 border-b">
-                  {expense.account?.name || 'N/A'}
+                  {editDueId === expense.id ? (
+                    <>
+                      <input
+                        type="date"
+                        value={editDue}
+                        onChange={(e) => setEditDue(e.target.value)}
+                        className="border p-1 rounded"
+                      />
+                      <button
+                        onClick={() => handleEditDueSave(expense.id)}
+                        className="bg-green-500 text-white px-2 py-1 rounded ml-1"
+                      >
+                        Save
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {expense.nextDueDate}
+                      <button
+                        onClick={() => handleEditDueClick(expense)}
+                        className="bg-blue-500 text-white px-2 py-1 rounded ml-1"
+                      >
+                        Edit
+                      </button>
+                    </>
+                  )}
                 </td>
                 <td className="py-2 px-4 border-b">
-                  {expense.category?.name || 'N/A'}
+                  {editAccountId === expense.id ? (
+                    <>
+                      <select
+                        value={editAccount}
+                        onChange={(e) => setEditAccount(e.target.value)}
+                        className="border p-1 rounded"
+                      >
+                        <option value="">Select Account</option>
+                        {accounts.map((acc) => (
+                          <option key={acc.id} value={acc.name}>
+                            {acc.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => handleEditAccountSave(expense.id)}
+                        className="bg-green-500 text-white px-2 py-1 rounded ml-1"
+                      >
+                        Save
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {expense.account?.name || 'N/A'}
+                      <button
+                        onClick={() => handleEditAccountClick(expense)}
+                        className="bg-blue-500 text-white px-2 py-1 rounded ml-1"
+                      >
+                        Edit
+                      </button>
+                    </>
+                  )}
+                </td>
+                {/* category */}
+                <td className="py-2 px-4 border-b">{expense.category?.name}</td>
+                <td className="py-2 px-4 border-b">
+                  {expense.active ? 'Active' : 'Paused'}
                 </td>
                 <td className="py-2 px-4 border-b">
+                  {expense.active ? (
+                    <button
+                      onClick={() => handlePause(expense.id)}
+                      className="bg-orange-500 text-white px-2 py-1 rounded mr-1"
+                    >
+                      Pause
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleResume(expense.id)}
+                      className="bg-purple-500 text-white px-2 py-1 rounded mr-1"
+                    >
+                      Resume
+                    </button>
+                  )}
                   <button
                     onClick={() => handleDelete(expense.id)}
                     className="bg-red-500 text-white px-2 py-1 rounded"

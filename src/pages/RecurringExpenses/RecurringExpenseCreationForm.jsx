@@ -60,8 +60,11 @@ const RecurringExpenseCreationForm = ({
       setNewCategoryName('');
       setShowCategoryModal(false);
     } catch (err) {
-      console.error('Failed to create category', err);
-      setError('Failed to create category');
+      console.error('Failed to add category', err);
+      const errorMsg =
+      err.response && err.response.data && err.response.data.message
+        ? err.response.data.message
+        : 'Failed to add category';
     }
   };
 
