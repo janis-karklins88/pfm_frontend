@@ -3,17 +3,24 @@ import axios from 'axios';
 import RecurringExpenseCreationForm from './RecurringExpenseCreationForm';
 
 const RecurringExpenses = () => {
+  // Base URL for the backend API
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+  // Retrieve the auth token from localStorage
   const token = localStorage.getItem('token');
 
+  // State for the list of recurring expenses (automatic payments)
   const [recurringExpenses, setRecurringExpenses] = useState([]);
+  // Filtering states (dates, category, account)
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [filterAccount, setFilterAccount] = useState('');
+  // States for accounts and categories lists (used in filters and inline editing)
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
+  // Error message state
   const [error, setError] = useState('');
+  // Toggle for showing/hiding the creation form
   const [showCreationForm, setShowCreationForm] = useState(false);
 
   // Inline editing states for amount, next due date, and account
@@ -24,7 +31,7 @@ const RecurringExpenses = () => {
   const [editAccountId, setEditAccountId] = useState(null);
   const [editAccount, setEditAccount] = useState('');
 
-  // Fetch recurring expenses with filtering
+  // Fetch recurring expenses from the backend (with filters if set)
   const fetchRecurringExpenses = async () => {
     try {
       let url = `${BASE_URL}/api/recurring-expenses`;
@@ -45,6 +52,7 @@ const RecurringExpenses = () => {
     }
   };
 
+  // Fetch accounts list from backend
   const fetchAccounts = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/api/accounts`, {
@@ -56,6 +64,7 @@ const RecurringExpenses = () => {
     }
   };
 
+  // Fetch categories list from backend
   const fetchCategories = async () => {
     try {
       const res = await axios.get(`${BASE_URL}/api/categories`, {
@@ -67,15 +76,18 @@ const RecurringExpenses = () => {
     }
   };
 
+  // Load recurring expenses whenever filter values change
   useEffect(() => {
     fetchRecurringExpenses();
   }, [startDate, endDate, filterCategory, filterAccount]);
 
+  // Load accounts and categories on initial mount
   useEffect(() => {
     fetchAccounts();
     fetchCategories();
   }, []);
 
+  // Delete a recurring expense by its id
   const handleDelete = async (id) => {
     try {
       await axios.delete(`${BASE_URL}/api/recurring-expenses/${id}`, {
@@ -89,11 +101,10 @@ const RecurringExpenses = () => {
           ? err.response.data.message
           : 'Failed to delete automatic payment';
       setError(errorMsg);
-      
     }
   };
 
-  // ----- Inline Edit Handlers for Amount -----
+  // ----- Inline Editing Handlers for Amount -----
   const handleEditAmountClick = (expense) => {
     setEditAmountId(expense.id);
     setEditAmount(expense.amount);
@@ -119,7 +130,7 @@ const RecurringExpenses = () => {
     }
   };
 
-  // ----- Inline Edit Handlers for Next Due Date -----
+  // ----- Inline Editing Handlers for Next Due Date -----
   const handleEditDueClick = (expense) => {
     setEditDueId(expense.id);
     setEditDue(expense.nextDueDate);
@@ -145,10 +156,12 @@ const RecurringExpenses = () => {
     }
   };
 
-  // ----- Inline Edit Handlers for Account -----
+  // ----- Inline Editing Handlers for Account -----
   const handleEditAccountClick = (expense) => {
     setEditAccountId(expense.id);
-    setEditAccount(expense.account?.name || '');
+    // Here, we assume the backend returns the account as an object.
+    // The dropdown will use the account id.
+    setEditAccount(expense.account?.id || '');
   };
 
   const handleEditAccountSave = async (id) => {
@@ -171,7 +184,7 @@ const RecurringExpenses = () => {
     }
   };
 
-  // ----- Pause/Resume Handlers -----
+  // ----- Handlers for Pause/Resume -----
   const handlePause = async (id) => {
     try {
       await axios.patch(`${BASE_URL}/api/recurring-expenses/${id}/pause`, null, {
@@ -206,9 +219,10 @@ const RecurringExpenses = () => {
 
   return (
     <div className="p-6">
+      {/* Page Header */}
       <h1 className="text-3xl font-bold mb-4">Automatic Payments</h1>
 
-      {/* Toggle the creation form */}
+      {/* Button to toggle the Recurring Expense Creation Form */}
       <button
         onClick={() => setShowCreationForm(!showCreationForm)}
         className="bg-green-500 text-white px-4 py-2 rounded mb-4"
@@ -216,6 +230,7 @@ const RecurringExpenses = () => {
         {showCreationForm ? 'Cancel Payment Creation' : 'Add Payment'}
       </button>
 
+      {/* Render the creation form if toggled */}
       {showCreationForm && (
         <RecurringExpenseCreationForm
           token={token}
@@ -229,9 +244,10 @@ const RecurringExpenses = () => {
         />
       )}
 
+      {/* Display error message if exists */}
       {error && <p className="text-red-500">{error}</p>}
 
-      {/* Filtering Options (you can remove these later if not needed) */}
+      {/* Filtering Options (if needed) */}
       <div className="mb-4 flex flex-wrap gap-2">
         <input
           type="date"
@@ -279,10 +295,11 @@ const RecurringExpenses = () => {
         </button>
       </div>
 
-      {/* Recurring Payments List */}
+      {/* Recurring Payments Table */}
       <table className="min-w-full bg-white">
         <thead>
           <tr>
+            {/* Table Column Headers */}
             <th className="py-2 px-4 border-b">Name</th>
             <th className="py-2 px-4 border-b">Amount</th>
             <th className="py-2 px-4 border-b">Frequency</th>
@@ -296,18 +313,21 @@ const RecurringExpenses = () => {
         </thead>
         <tbody>
           {recurringExpenses.length === 0 ? (
+            // If no recurring expenses, display a message
             <tr>
               <td className="py-2 px-4 border-b" colSpan="9">
                 No automatic payments found.
               </td>
             </tr>
           ) : (
+            // Map each recurring expense to a table row
             recurringExpenses.map((expense) => (
               <tr key={expense.id}>
                 <td className="py-2 px-4 border-b">{expense.name}</td>
                 <td className="py-2 px-4 border-b">
                   {editAmountId === expense.id ? (
                     <>
+                      {/* Inline edit input for amount */}
                       <input
                         type="number"
                         step="0.01"
@@ -339,6 +359,7 @@ const RecurringExpenses = () => {
                 <td className="py-2 px-4 border-b">
                   {editDueId === expense.id ? (
                     <>
+                      {/* Inline edit input for next due date */}
                       <input
                         type="date"
                         value={editDue}
@@ -367,6 +388,7 @@ const RecurringExpenses = () => {
                 <td className="py-2 px-4 border-b">
                   {editAccountId === expense.id ? (
                     <>
+                      {/* Inline edit dropdown for account */}
                       <select
                         value={editAccount}
                         onChange={(e) => setEditAccount(e.target.value)}
@@ -374,7 +396,7 @@ const RecurringExpenses = () => {
                       >
                         <option value="">Select Account</option>
                         {accounts.map((acc) => (
-                          <option key={acc.id} value={acc.name}>
+                          <option key={acc.id} value={acc.id}>
                             {acc.name}
                           </option>
                         ))}
@@ -398,12 +420,14 @@ const RecurringExpenses = () => {
                     </>
                   )}
                 </td>
-                {/* category */}
-                <td className="py-2 px-4 border-b">{expense.category?.name}</td>
+                {/* Category column displays the category name */}
+                <td className="py-2 px-4 border-b">{expense.category?.name || 'N/A'}</td>
+                {/* Status column displays whether the expense is active or paused */}
                 <td className="py-2 px-4 border-b">
                   {expense.active ? 'Active' : 'Paused'}
                 </td>
                 <td className="py-2 px-4 border-b">
+                  {/* Pause/Resume buttons */}
                   {expense.active ? (
                     <button
                       onClick={() => handlePause(expense.id)}
@@ -419,6 +443,7 @@ const RecurringExpenses = () => {
                       Resume
                     </button>
                   )}
+                  {/* Delete button */}
                   <button
                     onClick={() => handleDelete(expense.id)}
                     className="bg-red-500 text-white px-2 py-1 rounded"
