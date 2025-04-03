@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import SavingsGoalCreationForm from './SavingsGoalCreationForm';
+import { formatCurrency } from "../../utils/currency";
 
 const Savings = () => {
   // Base URL for backend API (from environment variables)
@@ -27,6 +28,10 @@ const Savings = () => {
   // Inline editing states for editing the target amount of a savings goal
   const [editGoalId, setEditGoalId] = useState(null);
   const [editGoalAmount, setEditGoalAmount] = useState('');
+
+  //currency
+  const userPreferredCurrency = 'EUR';
+  const userPreferredLocale = 'en-GB';
 
   // Fetch all savings goals for the current user
   const fetchSavingsGoals = async () => {
@@ -213,7 +218,7 @@ const Savings = () => {
                     </>
                   ) : (
                     <>
-                      {goal.targetAmount}
+                      {formatCurrency(goal.targetAmount, userPreferredCurrency, userPreferredLocale)}
                       <button
                         onClick={() => handleEditClick(goal)}
                         className="bg-blue-500 text-white px-2 py-1 rounded ml-1"
@@ -223,7 +228,7 @@ const Savings = () => {
                     </>
                   )}
                 </td>
-                <td className="py-2 px-4 border-b">{goal.currentAmount}</td>
+                <td className="py-2 px-4 border-b">{formatCurrency(goal.currentAmount, userPreferredCurrency, userPreferredLocale)}</td>
                 <td className="py-2 px-4 border-b">{goal.description}</td>
                 <td className="py-2 px-4 border-b">
                   {/* Button to open the Transfer Funds modal */}

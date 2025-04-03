@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import BudgetCreationForm from './BudgetCreationForm';
+import { formatCurrency } from "../../utils/currency";
 
 const Budgets = () => {
   // Base URL for your backend API (set in your environment)
@@ -22,6 +23,10 @@ const Budgets = () => {
   const [editAmount, setEditAmount] = useState('');
   // Toggle state for displaying the budget creation form
   const [showBudgetForm, setShowBudgetForm] = useState(false);
+
+  //currency
+  const userPreferredCurrency = 'EUR';
+  const userPreferredLocale = 'en-GB';
 
   // When the component mounts, set the default filter to the current month.
   useEffect(() => {
@@ -260,11 +265,11 @@ const Budgets = () => {
                     />
                   ) : (
                     // Otherwise, display the budget amount
-                    budget.amount
+                    formatCurrency(budget.amount, userPreferredCurrency, userPreferredLocale)
                   )}
                 </td>
                 <td className="py-2 px-4 border-b">
-                  {totalSpent[budget.id] || 0}
+                {formatCurrency(totalSpent[budget.id], userPreferredCurrency, userPreferredLocale)}
                 </td>
                 <td className="py-2 px-4 border-b">{budget.startDate}</td>
                 <td className="py-2 px-4 border-b">{budget.endDate}</td>

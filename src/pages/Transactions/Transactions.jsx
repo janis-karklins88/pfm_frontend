@@ -2,8 +2,16 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import TransactionCreationForm from './TransactionCreationForm';
 import RecurringExpenseCreationForm from '../RecurringExpenses/RecurringExpenseCreationForm';
+import { formatCurrency } from "../../utils/currency";
+
+
 
 const Transactions = () => {
+  //currency 
+  const userPreferredCurrency = 'EUR';
+  const userPreferredLocale = 'en-GB';
+
+
   // Base URL for your backend API
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   // Retrieve token from localStorage (assumes user is logged in)
@@ -47,6 +55,31 @@ const Transactions = () => {
     }
   };
 
+  // Helper function to set filters to the current month
+  const handleCurrentMonth = () => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+      .toISOString()
+      .split('T')[0];
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      .toISOString()
+      .split('T')[0];
+    setStartDate(firstDay);
+    setEndDate(lastDay);
+  };
+
+  // Helper function to set filters to the previous month
+  const handlePreviousMonth = () => {
+    const now = new Date();
+    const previousMonth = now.getMonth() - 1;
+    const year = previousMonth < 0 ? now.getFullYear() - 1 : now.getFullYear();
+    const month = (previousMonth + 12) % 12;
+    const firstDay = new Date(year, month, 1).toISOString().split('T')[0];
+    const lastDay = new Date(year, month + 1, 0).toISOString().split('T')[0];
+    setStartDate(firstDay);
+    setEndDate(lastDay);
+  };
+
   // Fetch the list of accounts
   const fetchAccounts = async () => {
     try {
@@ -73,12 +106,26 @@ const Transactions = () => {
     }
   };
 
+  const handleAllDates = () => {
+    setStartDate('');
+    setEndDate('');
+  };
+
   // Run the fetch methods when filters change or on initial mount
   useEffect(() => {
     fetchTransactions();
   }, [startDate, endDate, filterCategory, filterAccount]);
 
   useEffect(() => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+      .toISOString()
+      .split('T')[0];
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      .toISOString()
+      .split('T')[0];
+    setStartDate(firstDay);
+    setEndDate(lastDay);
     fetchAccounts();
     fetchCategories();
   }, []);
@@ -143,6 +190,21 @@ const Transactions = () => {
 
       {/* Filtering Options */}
       <div className="mb-4 flex flex-wrap gap-2">
+        <button
+          onClick={handleCurrentMonth}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Current Month
+        </button>
+        <button
+          onClick={handlePreviousMonth}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Previous Month
+        </button>
+        <button onClick={handleAllDates} className="bg-blue-500 text-white px-4 py-2 rounded">
+          All
+        </button>
         {/* Start Date Filter */}
         <input
           type="date"
@@ -219,8 +281,7 @@ const Transactions = () => {
             transactions.map((txn) => (
               <tr key={txn.id}>
                 <td className="py-2 px-4 border-b">{txn.date}</td>
-                <td className="py-2 px-4 border-b">{txn.amount}</td>
-                {/* For category, check if the object exists and display its name */}
+                <td className="py-2 px-4 border-b">{formatCurrency(txn.amount, userPreferredCurrency, userPreferredLocale)}</td>
                 <td className="py-2 px-4 border-b">{txn.category?.name || 'N/A'}</td>
                 <td className="py-2 px-4 border-b">{txn.type}</td>
                 <td className="py-2 px-4 border-b">{txn.account?.name || 'N/A'}</td>

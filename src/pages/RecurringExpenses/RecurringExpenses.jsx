@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import RecurringExpenseCreationForm from './RecurringExpenseCreationForm';
+import { formatCurrency } from "../../utils/currency";
 
 const RecurringExpenses = () => {
   // Base URL for the backend API
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   // Retrieve the auth token from localStorage
   const token = localStorage.getItem('token');
+
+  //currency
+  const userPreferredCurrency = 'EUR';
+  const userPreferredLocale = 'en-GB';
 
   // State for the list of recurring expenses (automatic payments)
   const [recurringExpenses, setRecurringExpenses] = useState([]);
@@ -344,7 +349,7 @@ const RecurringExpenses = () => {
                     </>
                   ) : (
                     <>
-                      {expense.amount}
+                      {formatCurrency(expense.amount, userPreferredCurrency, userPreferredLocale)}
                       <button
                         onClick={() => handleEditAmountClick(expense)}
                         className="bg-blue-500 text-white px-2 py-1 rounded ml-1"

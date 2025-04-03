@@ -1,6 +1,7 @@
 // src/pages/Accounts/Accounts.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { formatCurrency } from "../../utils/currency";
 
 const Accounts = () => {
   const [accounts, setAccounts] = useState([]);
@@ -9,6 +10,12 @@ const Accounts = () => {
   const [editAccountId, setEditAccountId] = useState(null);
   const [editAccountName, setEditAccountName] = useState('');
   const [error, setError] = useState('');
+
+
+  //currency
+  const userPreferredCurrency = 'EUR';
+  const userPreferredLocale = 'en-GB';
+
 
   // Fetch all accounts from the backend
   const fetchAccounts = async () => {
@@ -125,7 +132,7 @@ const handleAddAccount = async (e) => {
       {/* Display total balance */}
       <div className="mb-4">
         <h2 className="text-xl font-semibold">
-          Total Balance: ${totalBalance.toFixed(2)}
+          Total Balance: {formatCurrency(totalBalance, userPreferredCurrency, userPreferredLocale)}
         </h2>
       </div>
 
@@ -159,7 +166,7 @@ const handleAddAccount = async (e) => {
       <table className="min-w-full bg-white">
         <thead>
           <tr>
-            <th className="py-2 px-4 border-b">ID</th>
+
             <th className="py-2 px-4 border-b">Name</th>
             <th className="py-2 px-4 border-b">Amount</th>
             <th className="py-2 px-4 border-b">Actions</th>
@@ -168,7 +175,6 @@ const handleAddAccount = async (e) => {
         <tbody>
           {accounts.map((account) => (
             <tr key={account.id}>
-              <td className="py-2 px-4 border-b">{account.id}</td>
               <td className="py-2 px-4 border-b">
                 {editAccountId === account.id ? (
                   <form onSubmit={handleEditAccount} className="flex space-x-2">
@@ -194,7 +200,7 @@ const handleAddAccount = async (e) => {
                   account.name
                 )}
               </td>
-              <td className="py-2 px-4 border-b">${Number(account.amount).toFixed(2)}</td>
+              <td className="py-2 px-4 border-b">{formatCurrency(account.amount, userPreferredCurrency, userPreferredLocale)}</td>
               <td className="py-2 px-4 border-b">
                 {editAccountId !== account.id && (
                   <>
