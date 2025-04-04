@@ -2,46 +2,43 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import BudgetCreationForm from './BudgetCreationForm';
 import { formatCurrency } from "../../utils/currency";
+import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
 
 const Budgets = () => {
-  // Base URL for your backend API (set in your environment)
+
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-  // Get the authentication token from localStorage
   const token = localStorage.getItem('token');
 
   // State for storing budgets retrieved from the backend
   const [budgets, setBudgets] = useState([]);
-  // State for storing total spent per budget (keyed by budget id)
   const [totalSpent, setTotalSpent] = useState({});
-  // States for filtering budgets by start and end date
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  // State for any error messages to display
+  const { startDate: initialStart, endDate: initialEnd } = getCurrentMonthRange();
+  const [startDate, setStartDate] = useState(initialStart);
+  const [endDate, setEndDate] = useState(initialEnd);
   const [error, setError] = useState('');
-  // States to handle inline editing of a budget's amount
   const [editBudgetId, setEditBudgetId] = useState(null);
   const [editAmount, setEditAmount] = useState('');
-  // Toggle state for displaying the budget creation form
   const [showBudgetForm, setShowBudgetForm] = useState(false);
 
   //currency
   const userPreferredCurrency = 'EUR';
   const userPreferredLocale = 'en-GB';
 
-  // When the component mounts, set the default filter to the current month.
-  useEffect(() => {
-    const now = new Date();
-    // Get the first day of the current month (in YYYY-MM-DD format)
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-      .toISOString()
-      .split('T')[0];
-    // Get the last day of the current month
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      .toISOString()
-      .split('T')[0];
-    setStartDate(firstDay);
-    setEndDate(lastDay);
-  }, []);
+    useEffect(() => {
+        handleCurrentMonth();
+      }, []);
+
+    const handleCurrentMonth = () => {
+      const { startDate, endDate } = getCurrentMonthRange();
+      setStartDate(startDate);
+      setEndDate(endDate);
+    };
+  
+    const handlePreviousMonth = () => {
+      const { startDate, endDate } = getPreviousMonthRange();
+      setStartDate(startDate);
+      setEndDate(endDate);
+    };
 
   // Fetch budgets from the backend, applying any set filters
   const fetchBudgets = async () => {
@@ -87,9 +84,8 @@ const Budgets = () => {
 
   // When startDate or endDate changes, fetch budgets
   useEffect(() => {
-    if (startDate && endDate) {
       fetchBudgets();
-    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, endDate]);
 
@@ -123,30 +119,7 @@ const Budgets = () => {
     }
   };
 
-  // Helper function to set filters to the current month
-  const handleCurrentMonth = () => {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-      .toISOString()
-      .split('T')[0];
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      .toISOString()
-      .split('T')[0];
-    setStartDate(firstDay);
-    setEndDate(lastDay);
-  };
 
-  // Helper function to set filters to the previous month
-  const handlePreviousMonth = () => {
-    const now = new Date();
-    const previousMonth = now.getMonth() - 1;
-    const year = previousMonth < 0 ? now.getFullYear() - 1 : now.getFullYear();
-    const month = (previousMonth + 12) % 12;
-    const firstDay = new Date(year, month, 1).toISOString().split('T')[0];
-    const lastDay = new Date(year, month + 1, 0).toISOString().split('T')[0];
-    setStartDate(firstDay);
-    setEndDate(lastDay);
-  };
 
   // Called when the user wants to delete a budget.
   // Sends a DELETE request to the backend.

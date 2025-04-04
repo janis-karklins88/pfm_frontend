@@ -82,6 +82,21 @@ const TransactionCreationForm = ({
     }
   };
 
+
+      const fetchCategories = async () => {
+        try {
+          const res = await axios.get(`${BASE_URL}/api/categories`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          setCategories(res.data);
+        } catch (err) {
+          console.error("Failed to fetch categories", err);
+        }
+      };
+      fetchCategories();
+
+
+
   return (
     <div>
       {/* Transaction creation form (horizontal layout) */}

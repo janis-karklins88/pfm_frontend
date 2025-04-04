@@ -3,14 +3,12 @@ import axios from 'axios';
 import TransactionCreationForm from './TransactionCreationForm';
 import RecurringExpenseCreationForm from '../RecurringExpenses/RecurringExpenseCreationForm';
 import { formatCurrency } from "../../utils/currency";
-
-
+import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
 
 const Transactions = () => {
-  //currency 
+  // currency
   const userPreferredCurrency = 'EUR';
   const userPreferredLocale = 'en-GB';
-
 
   // Base URL for your backend API
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
@@ -19,14 +17,12 @@ const Transactions = () => {
 
   // State variables for transactions list and filters
   const [transactions, setTransactions] = useState([]);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  // Now filterCategory will hold a category id (string or number)
+  const { startDate: initialStart, endDate: initialEnd } = getCurrentMonthRange();
+  const [startDate, setStartDate] = useState(initialStart);
+  const [endDate, setEndDate] = useState(initialEnd);
   const [filterCategory, setFilterCategory] = useState('');
   const [filterAccount, setFilterAccount] = useState('');
   const [error, setError] = useState('');
-
-  // State variables for accounts and categories (used in filters and forms)
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
 
@@ -55,55 +51,17 @@ const Transactions = () => {
     }
   };
 
-  // Helper function to set filters to the current month
+  // Helper functions for date filters
   const handleCurrentMonth = () => {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-      .toISOString()
-      .split('T')[0];
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      .toISOString()
-      .split('T')[0];
-    setStartDate(firstDay);
-    setEndDate(lastDay);
+    const { startDate, endDate } = getCurrentMonthRange();
+    setStartDate(startDate);
+    setEndDate(endDate);
   };
 
-  // Helper function to set filters to the previous month
   const handlePreviousMonth = () => {
-    const now = new Date();
-    const previousMonth = now.getMonth() - 1;
-    const year = previousMonth < 0 ? now.getFullYear() - 1 : now.getFullYear();
-    const month = (previousMonth + 12) % 12;
-    const firstDay = new Date(year, month, 1).toISOString().split('T')[0];
-    const lastDay = new Date(year, month + 1, 0).toISOString().split('T')[0];
-    setStartDate(firstDay);
-    setEndDate(lastDay);
-  };
-
-  // Fetch the list of accounts
-  const fetchAccounts = async () => {
-    try {
-      const url = `${BASE_URL}/api/accounts`;
-      const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
-      // Use the spread operator to force conversion to a proper array
-      setAccounts([...res.data]);
-    } catch (err) {
-      console.error('Error fetching accounts:', err);
-      setError('Failed to fetch accounts');
-    }
-  };
-
-  // Fetch the list of categories from the reworked category endpoint
-  const fetchCategories = async () => {
-    try {
-      const url = `${BASE_URL}/api/categories`;
-      const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
-      setCategories(res.data);
-      setError('');
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-      setError('Failed to fetch categories');
-    }
+    const { startDate, endDate } = getPreviousMonthRange();
+    setStartDate(startDate);
+    setEndDate(endDate);
   };
 
   const handleAllDates = () => {
@@ -111,24 +69,43 @@ const Transactions = () => {
     setEndDate('');
   };
 
+  // Fetch the list of accounts
+  const fetchAccounts = async () => {
+    try {
+      const url = `${BASE_URL}/api/accounts`;
+      const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
+      // Assuming res.data is already an array of accounts
+      setAccounts(res.data);
+    } catch (err) {
+      console.error('Error fetching accounts:', err);
+      setError('Failed to fetch accounts');
+    }
+  };
+
+  // Fetch the list of categories from the reworked category endpoint
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get(`${BASE_URL}/api/categories`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setCategories(res.data);
+      } catch (err) {
+        console.error("Failed to fetch categories", err);
+      }
+    };
+    fetchCategories();
+  }, [BASE_URL, token]);
+
+  // Fetch accounts when component mounts
+  useEffect(() => {
+    fetchAccounts();
+  }, [BASE_URL, token]);
+
   // Run the fetch methods when filters change or on initial mount
   useEffect(() => {
     fetchTransactions();
   }, [startDate, endDate, filterCategory, filterAccount]);
-
-  useEffect(() => {
-    const now = new Date();
-    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
-      .toISOString()
-      .split('T')[0];
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-      .toISOString()
-      .split('T')[0];
-    setStartDate(firstDay);
-    setEndDate(lastDay);
-    fetchAccounts();
-    fetchCategories();
-  }, []);
 
   // Handler to delete a transaction by id
   const handleDelete = async (id) => {
@@ -143,7 +120,7 @@ const Transactions = () => {
   // Function to refresh both accounts and categories (used after creating new ones)
   const refreshAccountsAndCategories = () => {
     fetchAccounts();
-    fetchCategories();
+    // If needed, you could also extract fetchCategories as a separate function to call here.
   };
 
   return (
@@ -156,7 +133,6 @@ const Transactions = () => {
         <button onClick={() => setShowTxnForm(!showTxnForm)} className="bg-green-500 text-white px-4 py-2 rounded">
           {showTxnForm ? 'Cancel Transaction' : 'Add Transaction'}
         </button>
-        {/* You could toggle recurring expense form similarly if needed */}
       </div>
 
       {/* Transaction Creation Form */}
@@ -176,9 +152,7 @@ const Transactions = () => {
         <RecurringExpenseCreationForm
           token={token}
           BASE_URL={BASE_URL}
-          onExpenseCreated={() => {
-            /* Optionally refresh recurring expense list if needed */
-          }}
+          onExpenseCreated={() => {}}
           accounts={accounts}
           categories={categories}
           refreshAccountsAndCategories={refreshAccountsAndCategories}
@@ -228,7 +202,6 @@ const Transactions = () => {
           className="border p-2 rounded"
         >
           <option value="">All Categories</option>
-          {/* Use category id as the value; display the category name */}
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.name}
@@ -258,7 +231,6 @@ const Transactions = () => {
       <table className="min-w-full bg-white">
         <thead>
           <tr>
-            {/* Table Headers */}
             <th className="py-2 px-4 border-b">Date</th>
             <th className="py-2 px-4 border-b">Amount</th>
             <th className="py-2 px-4 border-b">Category</th>
@@ -270,24 +242,23 @@ const Transactions = () => {
         </thead>
         <tbody>
           {transactions.length === 0 ? (
-            // If no transactions, show a message spanning all columns
             <tr>
               <td className="py-2 px-4 border-b" colSpan="7">
                 No transactions found.
               </td>
             </tr>
           ) : (
-            // Map through transactions and create a row for each transaction
             transactions.map((txn) => (
               <tr key={txn.id}>
                 <td className="py-2 px-4 border-b">{txn.date}</td>
-                <td className="py-2 px-4 border-b">{formatCurrency(txn.amount, userPreferredCurrency, userPreferredLocale)}</td>
+                <td className="py-2 px-4 border-b">
+                  {formatCurrency(txn.amount, userPreferredCurrency, userPreferredLocale)}
+                </td>
                 <td className="py-2 px-4 border-b">{txn.category?.name || 'N/A'}</td>
                 <td className="py-2 px-4 border-b">{txn.type}</td>
                 <td className="py-2 px-4 border-b">{txn.account?.name || 'N/A'}</td>
                 <td className="py-2 px-4 border-b">{txn.description}</td>
                 <td className="py-2 px-4 border-b">
-                  {/* Delete button for a transaction */}
                   <button onClick={() => handleDelete(txn.id)} className="bg-red-500 text-white px-2 py-1 rounded">
                     Delete
                   </button>
