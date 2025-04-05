@@ -22,9 +22,11 @@ const Transactions = () => {
   const [endDate, setEndDate] = useState(initialEnd);
   const [filterCategory, setFilterCategory] = useState('');
   const [filterAccount, setFilterAccount] = useState('');
+  const [filterType, setFilterType] = useState('');
   const [error, setError] = useState('');
   const [accounts, setAccounts] = useState([]);
   const [categories, setCategories] = useState([]);
+
 
   // Toggle states for the creation forms
   const [showTxnForm, setShowTxnForm] = useState(false);
@@ -39,6 +41,7 @@ const Transactions = () => {
       if (endDate) params.append('endDate', endDate);
       if (filterCategory) params.append('categoryId', filterCategory);
       if (filterAccount) params.append('accountId', filterAccount);
+      if (filterType) params.append('type', filterType);
       if (params.toString()) {
         url += `?${params.toString()}`;
       }
@@ -83,17 +86,17 @@ const Transactions = () => {
   };
 
   // Fetch the list of categories from the reworked category endpoint
+  const fetchCategories = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/api/categories`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setCategories(res.data);
+    } catch (err) {
+      console.error("Failed to fetch categories", err);
+    }
+  };
   useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await axios.get(`${BASE_URL}/api/categories`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setCategories(res.data);
-      } catch (err) {
-        console.error("Failed to fetch categories", err);
-      }
-    };
     fetchCategories();
   }, [BASE_URL, token]);
 
@@ -105,7 +108,7 @@ const Transactions = () => {
   // Run the fetch methods when filters change or on initial mount
   useEffect(() => {
     fetchTransactions();
-  }, [startDate, endDate, filterCategory, filterAccount]);
+  }, [startDate, endDate, filterCategory, filterAccount, filterType]);
 
   // Handler to delete a transaction by id
   const handleDelete = async (id) => {
@@ -120,7 +123,7 @@ const Transactions = () => {
   // Function to refresh both accounts and categories (used after creating new ones)
   const refreshAccountsAndCategories = () => {
     fetchAccounts();
-    // If needed, you could also extract fetchCategories as a separate function to call here.
+    fetchCategories();
   };
 
   return (
@@ -208,6 +211,17 @@ const Transactions = () => {
             </option>
           ))}
         </select>
+        {/* Type Filter */}
+        <select
+        value={filterType}
+        onChange={(e) => setFilterType(e.target.value)}
+        className="border p-2 rounded"
+        >
+        <option value="">All Types</option>
+        <option value="Deposit">Deposit</option>
+        <option value="Expense">Expense</option>
+        </select>
+
         {/* Account Filter */}
         <select
           value={filterAccount}
@@ -221,10 +235,11 @@ const Transactions = () => {
             </option>
           ))}
         </select>
-        {/* Filter Button */}
+        {/* Filter Button, removed for now 
         <button onClick={fetchTransactions} className="bg-blue-500 text-white px-4 py-2 rounded">
           Filter
         </button>
+        */}
       </div>
 
       {/* Transactions List Table */}

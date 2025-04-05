@@ -12,7 +12,6 @@ const TransactionCreationForm = ({
   // State variables for the new transaction fields
   const [newTxnDate, setNewTxnDate] = useState('');
   const [newTxnAmount, setNewTxnAmount] = useState('');
-  // Now using category id instead of category name
   const [newTxnCategory, setNewTxnCategory] = useState('');
   const [newTxnAccount, setNewTxnAccount] = useState('');
   const [newTxnType, setNewTxnType] = useState('Expense'); // default value
@@ -65,7 +64,6 @@ const TransactionCreationForm = ({
       const res = await axios.post(`${BASE_URL}/api/categories`, payload, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // Refresh the accounts and categories lists
       refreshAccountsAndCategories();
       // Set the new transaction category to the newly created category's id
       // Assuming the response includes the category id and name.
@@ -83,17 +81,7 @@ const TransactionCreationForm = ({
   };
 
 
-      const fetchCategories = async () => {
-        try {
-          const res = await axios.get(`${BASE_URL}/api/categories`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          setCategories(res.data);
-        } catch (err) {
-          console.error("Failed to fetch categories", err);
-        }
-      };
-      fetchCategories();
+
 
 
 
