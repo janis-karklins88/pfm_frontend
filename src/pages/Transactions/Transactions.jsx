@@ -3,7 +3,7 @@ import axios from 'axios';
 import TransactionCreationForm from './TransactionCreationForm';
 import RecurringExpenseCreationForm from '../RecurringExpenses/RecurringExpenseCreationForm';
 import { formatCurrency } from "../../utils/currency";
-import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
+import { getCurrentMonthRange, getPreviousMonthRange, formatDate } from '../../utils/dateUtils';
 
 const Transactions = () => {
   // currency
@@ -265,7 +265,7 @@ const Transactions = () => {
           ) : (
             transactions.map((txn) => (
               <tr key={txn.id}>
-                <td className="py-2 px-4 border-b">{txn.date}</td>
+                <td className="py-2 px-4 border-b">{formatDate(txn.date)}</td>
                 <td className="py-2 px-4 border-b">
                   {formatCurrency(txn.amount, userPreferredCurrency, userPreferredLocale)}
                 </td>
