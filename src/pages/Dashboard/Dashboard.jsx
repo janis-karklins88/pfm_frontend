@@ -4,6 +4,7 @@ import SummaryCard from '../../components/SummaryCard';
 import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
 import { formatCurrency } from '../../utils/currency';
 import RecentTransactions from '../../components/RecentTransactions';
+import ExpenseByCategory from '../../components/ExpenseByCategory';
 
 const Dashboard = () => {
   const { startDate: initialStart, endDate: initialEnd } = getCurrentMonthRange();
@@ -109,9 +110,17 @@ const Dashboard = () => {
             <SummaryCard title="Total Income" value={totalIncome} formatCurrency={formatCurrency} />
             <SummaryCard title="Total Expenses" value={totalExpenses} formatCurrency={formatCurrency} />
           </div>
-
           
-        </div>
+          {/* Expense by category*/}
+          <div className="w-2/3">
+          <ExpenseByCategory token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} />
+          </div>
+          {/* Budgeting Placeholder on the left */}
+          <div className="w-1/3 flex items-center justify-center border-2 border-dashed border-gray-300 p-4">
+          <span className="text-gray-500">Budget Info Placeholder</span>
+          </div>
+
+      </div>
 
         {/* Right Column for Recent Transactions */}
         <div className="w-full md:w-1/3">
