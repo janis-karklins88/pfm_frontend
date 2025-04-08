@@ -1,20 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { getCurrentMonthRange, getNextMonthRange, formatDate } from '../../utils/dateUtils';
 
 const BudgetCreationForm = ({ token, BASE_URL, onBudgetCreated }) => {
   // State variables for budget details
   const [amount, setAmount] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  // selectedCategory now holds the category id (as a string or number)
+  const { startDate: initialStart, endDate: initialEnd } = getCurrentMonthRange();
+  const [startDate, setStartDate] = useState(initialStart);
+  const [endDate, setEndDate] = useState(initialEnd);
   const [selectedCategory, setSelectedCategory] = useState('');
-  // Local state to store the list of categories fetched from backend
   const [categories, setCategories] = useState([]);
-  // State to control the display of the "Add New Category" modal
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  // State for error messages
   const [error, setError] = useState('');
+
+
+  //handle next month
+  const handleNextMonth = () => {
+        const { startDate, endDate } = getNextMonthRange();
+        setStartDate(startDate);
+        setEndDate(endDate);
+      };
 
   // When the component mounts, fetch the list of categories.
   useEffect(() => {
@@ -94,6 +100,14 @@ const BudgetCreationForm = ({ token, BASE_URL, onBudgetCreated }) => {
           required
         />
       </div>
+      {/* Next month Field */}
+      <button
+          type="button"
+          onClick={handleNextMonth}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Next Month
+        </button>
       {/* Start Date Field */}
       <div>
         <label className="block text-sm mb-1">Start Date</label>

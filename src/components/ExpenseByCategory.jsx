@@ -83,7 +83,7 @@ const ExpenseByCategoryChart = ({ token, BASE_URL, startDate, endDate }) => {
           {/* Custom Legend on the left */}
           <div className="w-1/3">{renderLegend()}</div>
           {/* Chart on the right */}
-          <div className="w-1/3">
+          <div className="w-2/3">
             <div className="chart-container" style={{ height: '300px', width: '100%' }}>
               <Pie 
                 data={chartData} 

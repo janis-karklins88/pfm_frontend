@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import BudgetCreationForm from './BudgetCreationForm';
 import { formatCurrency } from "../../utils/currency";
-import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
+import { getCurrentMonthRange, getPreviousMonthRange, getNextMonthRange, formatDate } from '../../utils/dateUtils';
 
 const Budgets = () => {
 
@@ -39,6 +39,13 @@ const Budgets = () => {
       setStartDate(startDate);
       setEndDate(endDate);
     };
+
+      //handle next month
+      const handleNextMonth = () => {
+            const { startDate, endDate } = getNextMonthRange();
+            setStartDate(startDate);
+            setEndDate(endDate);
+          };
 
   // Fetch budgets from the backend, applying any set filters
   const fetchBudgets = async () => {
@@ -176,6 +183,13 @@ const Budgets = () => {
         >
           Previous Month
         </button>
+        <button
+          type="button"
+          onClick={handleNextMonth}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          Next Month
+        </button>
         <input
           type="date"
           value={startDate}
@@ -190,12 +204,6 @@ const Budgets = () => {
           className="border p-2 rounded"
           placeholder="End Date"
         />
-        <button
-          onClick={fetchBudgets}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Filter
-        </button>
       </div>
 
       {/* Budgets Table */}
@@ -244,8 +252,8 @@ const Budgets = () => {
                 <td className="py-2 px-4 border-b">
                 {formatCurrency(totalSpent[budget.id], userPreferredCurrency, userPreferredLocale)}
                 </td>
-                <td className="py-2 px-4 border-b">{budget.startDate}</td>
-                <td className="py-2 px-4 border-b">{budget.endDate}</td>
+                <td className="py-2 px-4 border-b">{formatDate(budget.startDate)}</td>
+                <td className="py-2 px-4 border-b">{formatDate(budget.endDate)}</td>
                 <td className="py-2 px-4 border-b">
                   {editBudgetId === budget.id ? (
                     // If editing, show Save button
