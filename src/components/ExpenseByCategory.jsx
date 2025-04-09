@@ -23,14 +23,23 @@ const ExpenseByCategoryChart = ({ token, BASE_URL, startDate, endDate }) => {
       const values = data.map((item) => item.totalAmount);
 
       // Generate an array of background colors for each category
+      // Generate an array of background colors for each category
       const backgroundColors = [
-        '#FF6384',
-        '#36A2EB',
-        '#FFCE56',
-        '#4BC0C0',
-        '#9966FF',
-        '#FF9F40'
-      ];
+      '#FF6384', // pink/red
+      '#36A2EB', // blue
+      '#FFCE56', // yellow
+      '#4BC0C0', // teal
+      '#9966FF', // purple
+      '#FF9F40', // orange
+      '#8E44AD', // additional purple
+      '#2980B9', // additional blue
+      '#27AE60', // green
+      '#E67E22', // orange-ish
+      '#C0392B', // red
+      '#F1C40F', // bright yellow
+];
+
+      
       // If there are more categories than colors, you can extend this array or generate colors dynamically.
 
       setChartData({

@@ -72,8 +72,8 @@ const BudgetCreationForm = ({ token, BASE_URL, onBudgetCreated }) => {
       });
       // Clear form fields upon success
       setAmount('');
-      setStartDate('');
-      setEndDate('');
+      setStartDate(initialStart);
+      setEndDate(initialEnd);
       setSelectedCategory('');
       setError('');
       onBudgetCreated();

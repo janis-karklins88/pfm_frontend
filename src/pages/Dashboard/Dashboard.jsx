@@ -7,6 +7,7 @@ import RecentTransactions from '../../components/RecentTransactions';
 import ExpenseByCategory from '../../components/ExpenseByCategory';
 import BudgetBarChart from '../../components/BudgetBarChart';
 import NextPayments from '../../components/NextPayments';
+import SavingsGoalsProgress from '../../components/SavingsGoalsProgress';
 
 
 const Dashboard = () => {
@@ -114,7 +115,7 @@ const Dashboard = () => {
         <SummaryCard title="Total Expenses" value={totalExpenses} formatCurrency={formatCurrency} />
       </div>
       
-      {/* Grouping Expense by Category and Budget Bar Chart in a flex container */}
+      {/* Category and Budget Bar Chart container */}
       <div className="flex gap-4">
         {/* Expense by Category */}
         <div className="w-1/2">
@@ -125,6 +126,16 @@ const Dashboard = () => {
         <div className="w-1/2">
           <BudgetBarChart token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} />
         </div>
+      </div>
+      <div className="flex gap-4">
+      <div className="w-1/2">
+      <SavingsGoalsProgress
+            token={token}
+            BASE_URL={BASE_URL}
+            userPreferredCurrency={userPreferredCurrency}
+            userPreferredLocale={userPreferredLocale}
+          />
+      </div>
       </div>
     </div>
 
