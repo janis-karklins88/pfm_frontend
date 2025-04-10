@@ -58,17 +58,7 @@ const SavingsGoalCreationForm = ({ token, BASE_URL, onGoalCreated }) => {
           required
         />
       </div>
-      <div>
-        <label className="block text-sm mb-1">Current Amount</label>
-        <input
-          type="number"
-          step="0.01"
-          value={currentAmount}
-          onChange={(e) => setCurrentAmount(e.target.value)}
-          className="border p-2 rounded"
-          required
-        />
-      </div>
+
       <div>
         <label className="block text-sm mb-1">Description</label>
         <input

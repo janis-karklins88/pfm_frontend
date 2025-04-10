@@ -8,6 +8,8 @@ import ExpenseByCategory from '../../components/ExpenseByCategory';
 import BudgetBarChart from '../../components/BudgetBarChart';
 import NextPayments from '../../components/NextPayments';
 import SavingsGoalsProgress from '../../components/SavingsGoalsProgress';
+import CashFlow from '../../components/CashFlow';
+import BalanceBreakdownChart from '../../components/BalanceBreakdownChart';
 
 
 const Dashboard = () => {
@@ -41,7 +43,7 @@ const Dashboard = () => {
   // Fetch total balance
   const fetchTotalBalance = async () => {
     try {
-      const response = await axios.get('/api/accounts/balance', {
+      const response = await axios.get('/api/reports/balance', {
         headers: { Authorization: `Bearer ${token}` },
       });
       setTotalBalance(response.data);
@@ -107,7 +109,9 @@ const Dashboard = () => {
   </div>
   {/* Layout with flex: left side for summary & charts, right side for recent transactions and next payments */}
   <div className="flex gap-4">
-    {/* Left Column */}
+
+
+    {/* *************************** Left Column ***************************** */}
     <div className="flex-1">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <SummaryCard title="Total Balance" value={totalBalance} formatCurrency={formatCurrency} />
@@ -127,17 +131,47 @@ const Dashboard = () => {
           <BudgetBarChart token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} />
         </div>
       </div>
+
+      {/* CashFlow & something else */}
       <div className="flex gap-4">
-      <div className="w-1/2">
-      <SavingsGoalsProgress
-            token={token}
-            BASE_URL={BASE_URL}
-            userPreferredCurrency={userPreferredCurrency}
-            userPreferredLocale={userPreferredLocale}
-          />
-      </div>
-      </div>
+        {/* CashFlow */}
+    <div className="w-1/2">
+      <CashFlow
+        token={token}
+        BASE_URL={BASE_URL}
+        userPreferredCurrency={userPreferredCurrency}
+        userPreferredLocale={userPreferredLocale}
+      />
     </div>
+    {/* Some other widget */}
+      </div>
+
+      {/* Savings & Account breakdown and something else */}
+      <div className="flex gap-4">
+        {/* Savings */}
+    <div className="w-1/3">
+    <SavingsGoalsProgress
+        token={token}
+        BASE_URL={BASE_URL}
+        userPreferredCurrency={userPreferredCurrency}
+        userPreferredLocale={userPreferredLocale}
+      />
+    </div>
+    {/* Balance breakdown */}
+    <div className="w-1/3">
+    <BalanceBreakdownChart token={token} BASE_URL={BASE_URL} />
+  </div>
+  {/* Something else */}
+  <div className="w-1/3">
+    <BalanceBreakdownChart token={token} BASE_URL={BASE_URL} />
+  </div>
+      </div>
+
+
+
+    </div>
+
+
 
     {/* Right Column for Recent Transactions and Next Payments */}
     <div className="flex gap-4">

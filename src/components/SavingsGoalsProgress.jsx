@@ -26,12 +26,12 @@ const SavingsGoalsProgress = ({ token, BASE_URL, userPreferredCurrency, userPref
       {savingsGoals.length === 0 ? (
         <p className="text-sm">No savings goals found.</p>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-2">
           {savingsGoals.map((goal) => {
             // Calculate the percentage of the goal reached
             const percentage = (goal.currentAmount / goal.targetAmount) * 100;
             return (
-              <div key={goal.id} className="border p-4 rounded">
+              <div key={goal.id} className="border p-3 rounded">
                 <div className="flex justify-between mb-2">
                   <span className="font-bold">{goal.name}</span>
                   <span className="text-sm">
@@ -39,9 +39,9 @@ const SavingsGoalsProgress = ({ token, BASE_URL, userPreferredCurrency, userPref
                     / {formatCurrency(goal.targetAmount, userPreferredCurrency, userPreferredLocale)}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-4">
+                <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
-                    className="bg-blue-500 h-4 rounded-full"
+                    className="bg-blue-500 h-2 rounded-full"
                     style={{ width: `${percentage}%` }}
                   ></div>
                 </div>
