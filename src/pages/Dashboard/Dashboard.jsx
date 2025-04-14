@@ -19,6 +19,7 @@ const Dashboard = () => {
   const [totalBalance, setTotalBalance] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
+  const [totalSavings, setTotalSavings] = useState(0);
   
   const token = localStorage.getItem('token');
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
@@ -52,6 +53,18 @@ const Dashboard = () => {
     }
   };
 
+  //Fetch total savings
+  const fetchTotalSavings = async () => {
+    try {
+      const response = await axios.get('/api/savings-goals/savings-balance', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTotalSavings(response.data);
+    } catch (err) {
+      console.error('Error fetching total balance:', err);
+    }
+  }
+
   // Fetch income and expense summary based on current date filters
   const fetchSpendingAndIncome = async () => {
     try {
@@ -78,12 +91,12 @@ const Dashboard = () => {
   // Fetch total balance on mount
   useEffect(() => {
     fetchTotalBalance();
+    fetchTotalSavings();
   }, []);
 
 
   return (
 <div className="p-4">
-  <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
   {/* Date Filter Controls */}
   <div className="flex flex-wrap gap-4 mb-4">
     <button onClick={handleCurrentMonth} className="bg-blue-500 text-white px-4 py-2 rounded">
@@ -113,14 +126,16 @@ const Dashboard = () => {
 
     {/* *************************** Left Column ***************************** */}
     <div className="flex-1">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
         <SummaryCard title="Total Balance" value={totalBalance} formatCurrency={formatCurrency} />
         <SummaryCard title="Total Income" value={totalIncome} formatCurrency={formatCurrency} />
         <SummaryCard title="Total Expenses" value={totalExpenses} formatCurrency={formatCurrency} />
+        <SummaryCard title="Total Savings" value={totalSavings} formatCurrency={formatCurrency} />
       </div>
       
       {/* Category and Budget Bar Chart container */}
       <div className="flex gap-4">
+
         {/* Expense by Category */}
         <div className="w-1/2">
           <ExpenseByCategory token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} />
@@ -134,37 +149,36 @@ const Dashboard = () => {
 
       {/* CashFlow & something else */}
       <div className="flex gap-4">
+
         {/* CashFlow */}
-    <div className="w-1/2">
-      <CashFlow
-        token={token}
-        BASE_URL={BASE_URL}
-        userPreferredCurrency={userPreferredCurrency}
-        userPreferredLocale={userPreferredLocale}
-      />
-    </div>
-    {/* Some other widget */}
+      <div className="w-1/2">
+          <CashFlow
+            token={token}
+            BASE_URL={BASE_URL}
+            userPreferredCurrency={userPreferredCurrency}
+            userPreferredLocale={userPreferredLocale}
+          />
       </div>
 
-      {/* Savings & Account breakdown and something else */}
-      <div className="flex gap-4">
+        {/* Balance breakdown */}
+          <div className="w-1/4">
+          <BalanceBreakdownChart token={token} BASE_URL={BASE_URL} />
+          </div>
+
         {/* Savings */}
-    <div className="w-1/3">
-    <SavingsGoalsProgress
-        token={token}
-        BASE_URL={BASE_URL}
-        userPreferredCurrency={userPreferredCurrency}
-        userPreferredLocale={userPreferredLocale}
-      />
+          <div className="w-1/4">
+          <SavingsGoalsProgress
+              token={token}
+              BASE_URL={BASE_URL}
+              userPreferredCurrency={userPreferredCurrency}
+              userPreferredLocale={userPreferredLocale}
+          />
     </div>
-    {/* Balance breakdown */}
-    <div className="w-1/3">
-    <BalanceBreakdownChart token={token} BASE_URL={BASE_URL} />
-  </div>
-  {/* Something else */}
-  <div className="w-1/3">
-    <BalanceBreakdownChart token={token} BASE_URL={BASE_URL} />
-  </div>
+      </div>
+
+      {/* next row */}
+      <div className="flex gap-4">
+
       </div>
 
 

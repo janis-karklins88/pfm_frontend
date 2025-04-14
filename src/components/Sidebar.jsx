@@ -17,10 +17,16 @@ const Sidebar = () => {
             </Link>
           </li>
           <li>
+            <Link to="/expenses" className="block text-gray-800 hover:text-gray-600">
+              Expenses
+            </Link>
+          </li>
+          <li>
             <Link to="/transactions" className="block text-gray-800 hover:text-gray-600">
               Transactions
             </Link>
           </li>
+          
           <li>
             <Link to="/accounts" className="block text-gray-800 hover:text-gray-600">
               Accounts

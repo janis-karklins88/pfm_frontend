@@ -10,6 +10,7 @@ import Accounts from './pages/Accounts/Accounts';
 import Budgets from './pages/Budgets/Budgets';
 import RecurringExpenses from './pages/RecurringExpenses/RecurringExpenses';
 import Savings from './pages/Savings/Savings';
+import ExpensesPage from './pages/Expenses/Expensespage';
 
 function App() {
   return (
@@ -26,6 +27,16 @@ function App() {
             <PrivateRoute>
               <Layout>
                 <Dashboard />
+              </Layout>
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/expenses"
+          element={
+            <PrivateRoute>
+              <Layout>
+                <ExpensesPage />
               </Layout>
             </PrivateRoute>
           }
