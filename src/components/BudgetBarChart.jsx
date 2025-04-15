@@ -94,6 +94,11 @@ const BudgetBarChart = ({ token, BASE_URL, startDate, endDate }) => {
                   beginAtZero: true,
                 },
               },
+              plugins: {
+                datalabels: {
+                  display: false,
+                }
+              }
             }}
           />
         </div>

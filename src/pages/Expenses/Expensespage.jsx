@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import MonthlyExpenseChart from '../../components/MonthlyExpenseChart';
+import ExpenseByCategoryBarChart from '../../components/ExpenseByCategoryBarChart';
+import ExpenseByCategoryMonthChart from '../../components/ExpenseByCategoryMonthChart';
 
 
 const ExpensePage = () => {
@@ -102,15 +104,28 @@ const ExpensePage = () => {
       {/* Two-column Layout */}
       <div className="flex gap-4">
         {/* Left Column (2/3 width): Expense Charts & Analytics */}
-        <div className="w-2/3">
+        <div className="w-2/3 flex flex-col gap-4">
+        {/* cExpense by month */}
+          
           <MonthlyExpenseChart 
             token={token} 
             BASE_URL={BASE_URL} 
             userPreferredCurrency={userPreferredCurrency} 
             userPreferredLocale={userPreferredLocale}
           />
+          
+          {/* Expense by category */}
+          
+          <ExpenseByCategoryBarChart token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} userPreferredCurrency={userPreferredCurrency}
+            userPreferredLocale={userPreferredLocale}/>
+          
+          {/* Monthly expense for category*/}
+          
+          <ExpenseByCategoryMonthChart token={token} BASE_URL={BASE_URL} />
+
+          
           {/* You can add additional expense analytics components here */}
-        </div>
+          </div>
         
         {/* Right Column (1/3 width): Recent Transactions */}
         <div className="w-1/3">

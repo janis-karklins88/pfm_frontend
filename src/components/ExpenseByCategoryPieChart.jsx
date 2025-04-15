@@ -18,34 +18,31 @@ const ExpenseByCategoryChart = ({ token, BASE_URL, startDate, endDate }) => {
       );
       const data = response.data; // Expecting an array of DTOs with categoryName and totalAmount
 
-      // Extract labels and values from the data
+      // Extract labels and values from the data.
       const labels = data.map((item) => item.categoryName);
       const values = data.map((item) => item.totalAmount);
 
-      // Generate an array of background colors for each category
-      // Generate an array of background colors for each category
+      // Generate background colors for each category.
       const backgroundColors = [
-      '#FF6384', // pink/red
-      '#36A2EB', // blue
-      '#FFCE56', // yellow
-      '#4BC0C0', // teal
-      '#9966FF', // purple
-      '#FF9F40', // orange
-      '#8E44AD', // additional purple
-      '#2980B9', // additional blue
-      '#27AE60', // green
-      '#E67E22', // orange-ish
-      '#C0392B', // red
-      '#F1C40F', // bright yellow
-];
-
-      
-      // If there are more categories than colors, you can extend this array or generate colors dynamically.
+        '#FF6384', // pink/red
+        '#36A2EB', // blue
+        '#FFCE56', // yellow
+        '#4BC0C0', // teal
+        '#9966FF', // purple
+        '#FF9F40', // orange
+        '#8E44AD', // additional purple
+        '#2980B9', // additional blue
+        '#27AE60', // green
+        '#E67E22', // orange-ish
+        '#C0392B', // red
+        '#F1C40F', // bright yellow
+      ];
 
       setChartData({
         labels,
         datasets: [
           {
+            label: 'Expenses',
             data: values,
             backgroundColor: backgroundColors.slice(0, labels.length),
           },
@@ -62,36 +59,36 @@ const ExpenseByCategoryChart = ({ token, BASE_URL, startDate, endDate }) => {
     }
   }, [startDate, endDate, token, BASE_URL]);
 
-    // Custom legend component that uses chartData
-    const renderLegend = () => {
-        if (!chartData) return null;
-        return (
-          <ul className="space-y-2">
-            {chartData.labels.map((label, index) => (
-              <li key={index} className="flex items-center space-x-2">
-                {/* Colored Box */}
-                <div
-                  className="w-4 h-4"
-                  style={{ backgroundColor: chartData.datasets[0].backgroundColor[index] }}
-                ></div>
-                {/* Category and Amount */}
-                <span className="text-sm">
-                  {label}: {formatCurrency(chartData.datasets[0].data[index])}
-                </span>
-              </li>
-            ))}
-          </ul>
-        );
-      };
+  // Custom legend component which displays labels and amounts.
+  const renderLegend = () => {
+    if (!chartData) return null;
+    return (
+      <ul className="space-y-2">
+        {chartData.labels.map((label, index) => (
+          <li key={index} className="flex items-center space-x-2">
+            {/* Colored Box */}
+            <div
+              className="w-4 h-4"
+              style={{ backgroundColor: chartData.datasets[0].backgroundColor[index] }}
+            ></div>
+            {/* Category and Amount */}
+            <span className="text-sm">
+              {label}: {formatCurrency(chartData.datasets[0].data[index])}
+            </span>
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   return (
-<div className="bg-white shadow-md rounded p-4">
+    <div className="bg-white shadow-md rounded p-4">
       <h2 className="text-lg font-bold mb-2">Expenses by Category</h2>
       {chartData ? (
         <div className="flex gap-10 items-start">
           {/* Custom Legend on the left */}
           <div className="w-1/3">{renderLegend()}</div>
-          {/* Chart on the right */}
+          {/* Pie Chart on the right */}
           <div className="w-2/3">
             <div className="chart-container" style={{ height: '300px', width: '100%' }}>
               <Pie 
@@ -101,8 +98,11 @@ const ExpenseByCategoryChart = ({ token, BASE_URL, startDate, endDate }) => {
                   maintainAspectRatio: false,
                   plugins: {
                     legend: {
-                      display: false, // Disable default legend
+                      display: false, // Disable default legend if using custom legend
                     },
+                    datalabels: {
+                      display: false,
+                    }
                   },
                 }}
               />
@@ -113,7 +113,6 @@ const ExpenseByCategoryChart = ({ token, BASE_URL, startDate, endDate }) => {
         <p className="text-sm">No data available.</p>
       )}
     </div>
-
   );
 };
 

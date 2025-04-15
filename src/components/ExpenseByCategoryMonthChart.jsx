@@ -1,3 +1,4 @@
+// src/components/CategoryMonthlyExpenseChart.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
@@ -15,48 +16,75 @@ import { formatCurrency } from '../utils/currency';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, ChartDataLabels);
 
-const MonthlyExpenseChart = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale }) => {
+const CategoryMonthlyExpenseChart = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale }) => {
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   
+  // State for categories and selected category.
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  
+  // Load all categories once on mount.
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCategories = async () => {
       try {
-        // Fetch expense data (historical + prediction) from your endpoint.
-        // Expected response: an object whose keys are month labels and values are expense amounts.
-        const response = await axios.get(`${BASE_URL}/api/reports/expense-and-prediction`, {
+        const response = await axios.get(`${BASE_URL}/api/categories`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        setCategories(response.data);
+        if (response.data && response.data.length > 0) {
+          // Default to first category.
+          setSelectedCategory(response.data[0].id);
+        }
+      } catch (error) {
+        console.error('Error fetching categories:', error);
+      }
+    };
+    fetchCategories();
+  }, [token, BASE_URL]);
+  
+  // Fetch expense data for the selected category.
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!selectedCategory) return;
+      
+      try {
+        // Expected response: an object whose keys are month labels and values are amounts.
+        const response = await axios.get(
+          `${BASE_URL}/api/reports/expense-for-category?categoryId=${selectedCategory}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = response.data; 
-        // For example: { "JAN": 1000, "FEB": 1200, ..., "OCT": 1300, "NOV": 1400, "DEC": 0, "JAN_pred": 1500, "FEB_pred": 1550 }
+        // Example structure: { "JAN": 1000, "FEB": 1200, ..., "OCT": 1300, "NOV": 1400, "DEC": 0, "JAN_pred": 1500, "FEB_pred": 1550 }
         const allLabels = Object.keys(data);
         const allValues = Object.values(data).map(val => Number(val));
         
-        const historicalCount = 10; // First 10 entries are historical
-        
-        // Separate historical and predicted data.
+        // Assuming the first 10 entries are historical data.
+        const historicalCount = 10;
         const historicalLabels = allLabels.slice(0, historicalCount);
         const historicalValues = allValues.slice(0, historicalCount);
         const predictedLabels = allLabels.slice(historicalCount);
         const predictedValues = allValues.slice(historicalCount);
         
-        // Filter out historical months with 0 expense.
-        const filteredHistorical = historicalLabels.map((label, i) => ({ label, value: historicalValues[i] }))
-                                  .filter(item => item.value !== 0);
-        // Leave predicted data as is (or you could also filter them if needed).
-        const filteredPredicted = predictedLabels.map((label, i) => ({ label, value: predictedValues[i] }))
-                                  .filter(item => item.value !== 0);
+        // Filter out historical months with zero expense.
+        const filteredHistorical = historicalLabels
+          .map((label, i) => ({ label, value: historicalValues[i] }))
+          .filter(item => item.value !== 0);
+        // Leave predicted data as is (or filter if needed).
+        const filteredPredicted = predictedLabels
+          .map((label, i) => ({ label, value: predictedValues[i] }))
+          .filter(item => item.value !== 0);
         
-        // Merge the filtered historical and predicted data.
         const mergedLabels = filteredHistorical.map(item => item.label)
-                              .concat(filteredPredicted.map(item => item.label));
+          .concat(filteredPredicted.map(item => item.label));
         const mergedValues = filteredHistorical.map(item => item.value)
-                              .concat(filteredPredicted.map(item => item.value));
+          .concat(filteredPredicted.map(item => item.value));
         
-        // Use the count of filtered historical months for styling the line.
+        // Use the count of filtered historical months for styling the line segments.
         const filteredHistoricalCount = filteredHistorical.length;
         
-        // Create Chart.js data – one dataset that spans both historical and predicted data.
         const chartJSData = {
           labels: mergedLabels,
           datasets: [
@@ -67,10 +95,9 @@ const MonthlyExpenseChart = ({ token, BASE_URL, userPreferredCurrency, userPrefe
               backgroundColor: 'rgba(75,192,192,0.2)',
               tension: 0.3,
               fill: false,
-              // Use the segment plugin to style the predicted portion with a dashed line.
+              // Configure the predicted portion to appear dashed.
               segment: {
                 borderDash: (ctx) => {
-                  // When the segment starts after the last historical data point, use dashed border.
                   return ctx.p0DataIndex >= filteredHistoricalCount - 1 ? [5, 5] : [];
                 }
               }
@@ -79,27 +106,25 @@ const MonthlyExpenseChart = ({ token, BASE_URL, userPreferredCurrency, userPrefe
         };
         setChartData(chartJSData);
       } catch (error) {
-        console.error('Error fetching monthly expense data:', error);
+        console.error('Error fetching expense for category:', error);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, [token, BASE_URL]);
+  }, [selectedCategory, token, BASE_URL]);
   
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      // Remove the built-in legend.
       legend: { display: false },
-      // Add a title.
-      title: { display: true, text: 'Monthly Expenses' },
+      title: { display: true, text: 'Monthly Expenses by Category' },
       datalabels: {
         anchor: 'center',
         align: 'top',
-        offset: 4,  // Moves labels away from the edge.
-        clamp: true,  // Ensures labels do not overflow the chart area.
+        offset: 4,
+        clamp: true,
         formatter: (value) => value !== null ? formatCurrency(value, userPreferredCurrency, userPreferredLocale) : '',
         font: { weight: 'bold' },
         color: '#000'
@@ -129,13 +154,29 @@ const MonthlyExpenseChart = ({ token, BASE_URL, userPreferredCurrency, userPrefe
   };
 
   return (
-    <div className="bg-white shadow-md rounded p-4 mt-4 ">
+    <div className="bg-white shadow-md rounded p-4 mt-4">
+      {/* Category selection dropdown */}
+      <div className="mb-4">
+        <label className="text-sm font-bold mr-2">Select Category:</label>
+        <select
+          value={selectedCategory || ''}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+          className="border p-2 rounded"
+        >
+          {categories.map(cat => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      
       {loading ? (
         <p>Loading chart data...</p>
       ) : chartData ? (
         <div style={{ height: '300px', width: '100%' }}>
         <Line data={chartData} options={options} plugins={[ChartDataLabels]} />
-      </div>
+        </div>
       ) : (
         <p>No data available.</p>
       )}
@@ -143,4 +184,4 @@ const MonthlyExpenseChart = ({ token, BASE_URL, userPreferredCurrency, userPrefe
   );
 };
 
-export default MonthlyExpenseChart;
+export default CategoryMonthlyExpenseChart;

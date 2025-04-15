@@ -4,7 +4,8 @@ import SummaryCard from '../../components/SummaryCard';
 import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
 import { formatCurrency } from '../../utils/currency';
 import RecentTransactions from '../../components/RecentTransactions';
-import ExpenseByCategory from '../../components/ExpenseByCategory';
+import ExpenseByCategoryPieChart from '../../components/ExpenseByCategoryPieChart';
+import ExpenseByCategoryBarChart from '../../components/ExpenseByCategoryBarChart';
 import BudgetBarChart from '../../components/BudgetBarChart';
 import NextPayments from '../../components/NextPayments';
 import SavingsGoalsProgress from '../../components/SavingsGoalsProgress';
@@ -138,7 +139,7 @@ const Dashboard = () => {
 
         {/* Expense by Category */}
         <div className="w-1/2">
-          <ExpenseByCategory token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} />
+          <ExpenseByCategoryBarChart token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} />
         </div>
         
         {/* Budget Bar Chart */}

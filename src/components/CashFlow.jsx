@@ -102,7 +102,17 @@ const CashFlow = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale 
       {loading ? (
         <p>Loading cash flow data...</p>
       ) : filteredData.length > 0 ? (
-        <Bar data={data} options={options} />
+        <Bar data={data}
+        options={{
+                plugins: {
+                  legend: {
+                    display: true,
+                  },
+                  datalabels: {
+                    display: false,
+                  }
+                },
+              }}  />
       ) : (
         <p>No cash flow data available.</p>
       )}

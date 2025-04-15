@@ -69,6 +69,9 @@ const BalanceBreakdownChart = ({ token, BASE_URL, userPreferredCurrency, userPre
                   legend: {
                     display: false,
                   },
+                  datalabels: {
+                    display: false,
+                  }
                 },
               }}
             />
