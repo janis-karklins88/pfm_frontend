@@ -3,6 +3,8 @@ import axios from 'axios';
 import MonthlyExpenseChart from '../../components/MonthlyExpenseChart';
 import ExpenseByCategoryBarChart from '../../components/ExpenseByCategoryBarChart';
 import ExpenseByCategoryMonthChart from '../../components/ExpenseByCategoryMonthChart';
+import NetMonthlyBalanceChart from '../../components/NetMonthlySavingsBalanceChart';
+import BudgetProgressBars from '../../components/BudgetProgressBars';
 
 
 const ExpensePage = () => {
@@ -105,8 +107,8 @@ const ExpensePage = () => {
       <div className="flex gap-4">
         {/* Left Column (2/3 width): Expense Charts & Analytics */}
         <div className="w-2/3 flex flex-col gap-4">
+
         {/* cExpense by month */}
-          
           <MonthlyExpenseChart 
             token={token} 
             BASE_URL={BASE_URL} 
@@ -115,15 +117,36 @@ const ExpensePage = () => {
           />
           
           {/* Expense by category */}
-          
-          <ExpenseByCategoryBarChart token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} userPreferredCurrency={userPreferredCurrency}
-            userPreferredLocale={userPreferredLocale}/>
+          <ExpenseByCategoryBarChart 
+          token={token} 
+          BASE_URL={BASE_URL} 
+          startDate={startDate} 
+          endDate={endDate} 
+          userPreferredCurrency={userPreferredCurrency}
+          userPreferredLocale={userPreferredLocale}/>
           
           {/* Monthly expense for category*/}
-          
-          <ExpenseByCategoryMonthChart token={token} BASE_URL={BASE_URL} />
+          <ExpenseByCategoryMonthChart 
+          token={token} 
+          BASE_URL={BASE_URL} />
 
+          {/* Monthly Savings Net Balance*/}
+          <NetMonthlyBalanceChart 
+          token={token}
+          BASE_URL={BASE_URL}
+          userPreferredCurrency={userPreferredCurrency}
+          userPreferredLocale={userPreferredLocale}
+          />
           
+          {/* Budget progress bars */}
+          <BudgetProgressBars 
+          token={token} 
+          BASE_URL={BASE_URL} 
+          startDate={startDate} 
+          endDate={endDate} 
+          userPreferredCurrency={userPreferredCurrency}
+          userPreferredLocale={userPreferredLocale}/>
+
           {/* You can add additional expense analytics components here */}
           </div>
         
