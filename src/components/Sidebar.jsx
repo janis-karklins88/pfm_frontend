@@ -1,53 +1,47 @@
 // src/components/Sidebar.jsx
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+
+const navItems = [
+  { to: '/dashboard',    label: 'Dashboard' },
+  { to: '/expenses',     label: 'Expenses' },
+  { to: '/transactions', label: 'Transactions' },
+  { to: '/accounts',     label: 'Accounts' },
+  { to: '/budgets',      label: 'Budgets' },
+  { to: '/savings',      label: 'Savings' },
+  { to: '/recurringexpenses', label: 'Auto Payments' },
+];
 
 const Sidebar = () => {
+  const { pathname } = useLocation();
+
   return (
-    <aside className="w-64 bg-white shadow p-4">
-      {/* You can include a mini logo or title here as well */}
-      <div className="mb-6 text-xl font-bold text-gray-900">
+    <aside className="w-48 bg-white shadow p-2 flex flex-col">
+      {/* Logo / Title */}
+      <div className="mb-4 text-lg font-bold text-gray-900 px-2">
         Menu
       </div>
-      <nav>
-        <ul className="space-y-4">
-          <li>
-            <Link to="/dashboard" className="block text-gray-800 hover:text-gray-600">
-              Dashboard
-            </Link>
-          </li>
-          <li>
-            <Link to="/expenses" className="block text-gray-800 hover:text-gray-600">
-              Expenses
-            </Link>
-          </li>
-          <li>
-            <Link to="/transactions" className="block text-gray-800 hover:text-gray-600">
-              Transactions
-            </Link>
-          </li>
-          
-          <li>
-            <Link to="/accounts" className="block text-gray-800 hover:text-gray-600">
-              Accounts
-            </Link>
-          </li>
-          <li>
-            <Link to="/budgets" className="block text-gray-800 hover:text-gray-600">
-              Budgets
-            </Link>
-          </li>
-          <li>
-            <Link to="/savings" className="block text-gray-800 hover:text-gray-600">
-              Savings
-            </Link>
-          </li>
-          <li>
-            <Link to="/recurringexpenses" className="block text-gray-800 hover:text-gray-600">
-              Automatic Payments
-            </Link>
-          </li>
-          {/* Add more navigation items as needed */}
+
+      {/* Nav Links */}
+      <nav className="flex-1">
+        <ul className="space-y-2">
+          {navItems.map(({ to, label }) => {
+            const isActive = pathname === to;
+            return (
+              <li key={to}>
+                <Link
+                  to={to}
+                  className={`block px-2 py-1 rounded ${
+                    isActive
+                      ? 'bg-blue-100 text-blue-700 font-semibold'
+                      : 'text-gray-800 hover:bg-gray-100'
+                  }`}
+                >
+                  {label}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
     </aside>

@@ -5,32 +5,30 @@ import ExpenseByCategoryBarChart from '../../components/ExpenseByCategoryBarChar
 import ExpenseByCategoryMonthChart from '../../components/ExpenseByCategoryMonthChart';
 import NetMonthlyBalanceChart from '../../components/NetMonthlySavingsBalanceChart';
 import BudgetProgressBars from '../../components/BudgetProgressBars';
-
+import ExpenseTransactions from '../../components/ExpenseTransactions';
 
 const ExpensePage = () => {
   // Date filter state
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
-    const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-    const token = localStorage.getItem('token');
-    // Currency settings
-    const userPreferredCurrency = 'EUR';
-    const userPreferredLocale = 'en-GB';
+  const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+  const token = localStorage.getItem('token');
+  const userPreferredCurrency = 'EUR';
+  const userPreferredLocale = 'en-GB';
 
-
-  // Helper function to format Date objects as yyyy-MM-dd
+  // Helper to format Date as yyyy-MM-dd
   const formatDate = (date) => {
     const d = new Date(date);
-    let month = '' + (d.getMonth() + 1);
+    let m = '' + (d.getMonth() + 1);
     let day = '' + d.getDate();
-    const year = d.getFullYear();
-    if (month.length < 2) { month = '0' + month; }
-    if (day.length < 2) { day = '0' + day; }
-    return [year, month, day].join('-');
+    const y = d.getFullYear();
+    if (m.length < 2) m = '0' + m;
+    if (day.length < 2) day = '0' + day;
+    return [y, m, day].join('-');
   };
 
-  // Preset filter buttons for current month and previous 4 months
+  // Preset filters
   const handlePreset = (preset) => {
     const today = new Date();
     let start, end;
@@ -56,14 +54,14 @@ const ExpensePage = () => {
         end = new Date(today.getFullYear(), today.getMonth() - 3, 0);
         break;
       default:
-        start = new Date();
-        end = new Date();
+        start = today;
+        end = today;
     }
     setStartDate(formatDate(start));
     setEndDate(formatDate(end));
   };
 
-  // Set default dates to the current month on mount.
+  // Initialize to current month
   useEffect(() => {
     handlePreset('current');
   }, []);
@@ -71,91 +69,120 @@ const ExpensePage = () => {
   return (
     <div className="p-4">
       <h1 className="text-3xl font-bold mb-4">Expenses</h1>
-      
+
       {/* Date Filter Bar */}
       <div className="flex flex-wrap gap-2 mb-4">
-        <button onClick={() => handlePreset('current')} className="bg-blue-500 text-white px-4 py-2 rounded">
+        <button
+          onClick={() => handlePreset('current')}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
           Current Month
         </button>
-        <button onClick={() => handlePreset('last')} className="bg-blue-500 text-white px-4 py-2 rounded">
+        <button
+          onClick={() => handlePreset('last')}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
           Last Month
         </button>
-        <button onClick={() => handlePreset('2ago')} className="bg-blue-500 text-white px-4 py-2 rounded">
+        <button
+          onClick={() => handlePreset('2ago')}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
           2 Months Ago
         </button>
-        <button onClick={() => handlePreset('3ago')} className="bg-blue-500 text-white px-4 py-2 rounded">
+        <button
+          onClick={() => handlePreset('3ago')}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
           3 Months Ago
         </button>
-        
-        <input 
-          type="date" 
-          value={startDate} 
-          onChange={(e) => setStartDate(e.target.value)} 
-          className="border p-2 rounded" 
-          placeholder="Start Date"
+        <button
+          onClick={() => handlePreset('4ago')}
+          className="bg-blue-500 text-white px-4 py-2 rounded"
+        >
+          4 Months Ago
+        </button>
+        <input
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          className="border p-2 rounded"
         />
-        <input 
-          type="date" 
-          value={endDate} 
-          onChange={(e) => setEndDate(e.target.value)} 
-          className="border p-2 rounded" 
-          placeholder="End Date"
+        <input
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="border p-2 rounded"
         />
       </div>
-      
-      {/* Two-column Layout */}
-      <div className="flex gap-4">
-        {/* Left Column (2/3 width): Expense Charts & Analytics */}
-        <div className="w-2/3 flex flex-col gap-4">
 
-        {/* cExpense by month */}
-          <MonthlyExpenseChart 
-            token={token} 
-            BASE_URL={BASE_URL} 
-            userPreferredCurrency={userPreferredCurrency} 
+      {/* Responsive Two‑Column Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {/* Left: charts & analytics */}
+        <div className="md:col-span-3 flex flex-col gap-4">
+          <div className="w-full h-80">
+            <MonthlyExpenseChart
+              token={token}
+              BASE_URL={BASE_URL}
+              userPreferredCurrency={userPreferredCurrency}
+              userPreferredLocale={userPreferredLocale}
+            />
+          </div>
+
+          <div className="w-full h-80">
+            <ExpenseByCategoryBarChart
+              token={token}
+              BASE_URL={BASE_URL}
+              startDate={startDate}
+              endDate={endDate}
+              userPreferredCurrency={userPreferredCurrency}
+              userPreferredLocale={userPreferredLocale}
+            />
+          </div>
+
+          <div className="w-full h-80">
+            <ExpenseByCategoryMonthChart
+              token={token}
+              BASE_URL={BASE_URL}
+              startDate={startDate}
+              endDate={endDate}
+              userPreferredCurrency={userPreferredCurrency}
+              userPreferredLocale={userPreferredLocale}
+            />
+          </div>
+
+          <div className="w-full h-80">
+            <NetMonthlyBalanceChart
+              token={token}
+              BASE_URL={BASE_URL}
+              userPreferredCurrency={userPreferredCurrency}
+              userPreferredLocale={userPreferredLocale}
+            />
+          </div>
+          <div className="w-full">
+          <BudgetProgressBars
+            token={token}
+            BASE_URL={BASE_URL}
+            startDate={startDate}
+            endDate={endDate}
+            userPreferredCurrency={userPreferredCurrency}
             userPreferredLocale={userPreferredLocale}
           />
-          
-          {/* Expense by category */}
-          <ExpenseByCategoryBarChart 
-          token={token} 
-          BASE_URL={BASE_URL} 
-          startDate={startDate} 
-          endDate={endDate} 
-          userPreferredCurrency={userPreferredCurrency}
-          userPreferredLocale={userPreferredLocale}/>
-          
-          {/* Monthly expense for category*/}
-          <ExpenseByCategoryMonthChart 
-          token={token} 
-          BASE_URL={BASE_URL} />
-
-          {/* Monthly Savings Net Balance*/}
-          <NetMonthlyBalanceChart 
-          token={token}
-          BASE_URL={BASE_URL}
-          userPreferredCurrency={userPreferredCurrency}
-          userPreferredLocale={userPreferredLocale}
-          />
-          
-          {/* Budget progress bars */}
-          <BudgetProgressBars 
-          token={token} 
-          BASE_URL={BASE_URL} 
-          startDate={startDate} 
-          endDate={endDate} 
-          userPreferredCurrency={userPreferredCurrency}
-          userPreferredLocale={userPreferredLocale}/>
-
-          {/* You can add additional expense analytics components here */}
           </div>
-        
-        {/* Right Column (1/3 width): Recent Transactions */}
-        <div className="w-1/3">
-          <div className="bg-white shadow-md rounded p-4">
-            <h2 className="text-lg font-bold mb-2">Transactions</h2>
-            <p>Transaction list coming soon...</p>
-          </div>
+        </div>
+
+        {/* Right: transactions */}
+        <div className="md:col-span-2 flex flex-col gap-4">
+
+            <ExpenseTransactions
+              token={token}
+              BASE_URL={BASE_URL}
+              startDate={startDate}
+              endDate={endDate}
+              userPreferredCurrency={userPreferredCurrency}
+              userPreferredLocale={userPreferredLocale}
+            />
+
         </div>
       </div>
     </div>
