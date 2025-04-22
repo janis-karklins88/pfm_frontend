@@ -4,7 +4,6 @@ import axios from 'axios';
 const SavingsGoalCreationForm = ({ token, BASE_URL, onGoalCreated }) => {
   const [name, setName] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
-  const [currentAmount, setCurrentAmount] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
 
@@ -14,7 +13,6 @@ const SavingsGoalCreationForm = ({ token, BASE_URL, onGoalCreated }) => {
       const payload = {
         name,
         targetAmount,
-        currentAmount,
         description,
       };
       await axios.post(`${BASE_URL}/api/savings-goals`, payload, {
@@ -22,7 +20,6 @@ const SavingsGoalCreationForm = ({ token, BASE_URL, onGoalCreated }) => {
       });
       setName('');
       setTargetAmount('');
-      setCurrentAmount('');
       setDescription('');
       setError('');
       onGoalCreated();
