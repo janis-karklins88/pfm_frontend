@@ -11,6 +11,8 @@ import NextPayments from '../../components/NextPayments';
 import SavingsGoalsProgress from '../../components/SavingsGoalsProgress';
 import CashFlow from '../../components/CashFlow';
 import BalanceBreakdownChart from '../../components/BalanceBreakdownChart';
+import { FilterBar } from '../../components/FilterBar';
+
 
 
 const Dashboard = () => {
@@ -98,29 +100,7 @@ const Dashboard = () => {
 
   return (
 <div className="p-4">
-  {/* Date Filter Controls */}
-  <div className="flex flex-wrap gap-4 mb-4">
-    <button onClick={handleCurrentMonth} className="bg-blue-500 text-white px-4 py-2 rounded">
-      Current Month
-    </button>
-    <button onClick={handlePreviousMonth} className="bg-blue-500 text-white px-4 py-2 rounded">
-      Previous Month
-    </button>
-    <input
-      type="date"
-      value={startDate}
-      onChange={(e) => setStartDate(e.target.value)}
-      className="border p-2 rounded"
-      placeholder="Start Date"
-    />
-    <input
-      type="date"
-      value={endDate}
-      onChange={(e) => setEndDate(e.target.value)}
-      className="border p-2 rounded"
-      placeholder="End Date"
-    />
-  </div>
+
   {/* Layout with flex: left side for summary & charts, right side for recent transactions and next payments */}
   <div className="flex gap-4">
 

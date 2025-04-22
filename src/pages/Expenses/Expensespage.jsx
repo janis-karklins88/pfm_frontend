@@ -120,7 +120,7 @@ const ExpensePage = () => {
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {/* Left: charts & analytics */}
         <div className="md:col-span-3 flex flex-col gap-4">
-          <div className="w-full h-80">
+          <div className="w-full">
             <MonthlyExpenseChart
               token={token}
               BASE_URL={BASE_URL}
@@ -129,7 +129,7 @@ const ExpensePage = () => {
             />
           </div>
 
-          <div className="w-full h-80">
+          <div className="w-full">
             <ExpenseByCategoryBarChart
               token={token}
               BASE_URL={BASE_URL}
@@ -140,7 +140,7 @@ const ExpensePage = () => {
             />
           </div>
 
-          <div className="w-full h-80">
+          <div className="w-full">
             <ExpenseByCategoryMonthChart
               token={token}
               BASE_URL={BASE_URL}
@@ -151,7 +151,7 @@ const ExpensePage = () => {
             />
           </div>
 
-          <div className="w-full h-80">
+          <div className="w-full">
             <NetMonthlyBalanceChart
               token={token}
               BASE_URL={BASE_URL}

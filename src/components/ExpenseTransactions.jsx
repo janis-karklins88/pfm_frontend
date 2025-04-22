@@ -66,7 +66,29 @@ const ExpenseTransactions = ({
 
   return (
     <div className="bg-white shadow-md rounded p-4">
-      {/* Filters… */}
+      {/* Filters */}
+      <div className="flex flex-wrap gap-4 mb-4">
+        <select
+          className="border p-2 rounded"
+          value={selectedAccount}
+          onChange={(e) => setSelectedAccount(e.target.value)}
+        >
+          <option value="">All Accounts</option>
+          {accounts.map((a) => (
+            <option key={a.id} value={a.id}>{a.name}</option>
+          ))}
+        </select>
+        <select
+          className="border p-2 rounded"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="">All Categories</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
+        </select>
+      </div>
   
       {/* Table scroll wrapper */}
       <div className="overflow-x-auto">
