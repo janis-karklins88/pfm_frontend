@@ -1,192 +1,107 @@
+// src/pages/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import SummaryCard from '../../components/SummaryCard';
-import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
-import { formatCurrency } from '../../utils/currency';
 import RecentTransactions from '../../components/RecentTransactions';
-import ExpenseByCategoryPieChart from '../../components/ExpenseByCategoryPieChart';
+import NextPayments from '../../components/NextPayments';
 import ExpenseByCategoryBarChart from '../../components/ExpenseByCategoryBarChart';
 import BudgetBarChart from '../../components/BudgetBarChart';
-import NextPayments from '../../components/NextPayments';
-import SavingsGoalsProgress from '../../components/SavingsGoalsProgress';
 import CashFlow from '../../components/CashFlow';
 import BalanceBreakdownChart from '../../components/BalanceBreakdownChart';
-import { FilterBar } from '../../components/FilterBar';
-
-
+import SavingsGoalsProgress from '../../components/SavingsGoalsProgress';
+import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
+import { formatCurrency } from '../../utils/currency';
 
 const Dashboard = () => {
+  // Date range state
   const { startDate: initialStart, endDate: initialEnd } = getCurrentMonthRange();
   const [startDate, setStartDate] = useState(initialStart);
   const [endDate, setEndDate] = useState(initialEnd);
+
+  // Summary values
   const [totalBalance, setTotalBalance] = useState(0);
   const [totalIncome, setTotalIncome] = useState(0);
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [totalSavings, setTotalSavings] = useState(0);
-  
+  const [changes, setChanges] = useState({});
+
   const token = localStorage.getItem('token');
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
-  // Currency settings
-  const userPreferredCurrency = 'EUR';
-  const userPreferredLocale = 'en-GB';
-
-  //getting current month dates
-  const handleCurrentMonth = () => {
-    const { startDate, endDate } = getCurrentMonthRange();
-    setStartDate(startDate);
-    setEndDate(endDate);
-  };
-
-  const handlePreviousMonth = () => {
-    const { startDate, endDate } = getPreviousMonthRange();
-    setStartDate(startDate);
-    setEndDate(endDate);
-  };
-
-  // Fetch total balance
-  const fetchTotalBalance = async () => {
-    try {
-      const response = await axios.get('/api/reports/balance', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTotalBalance(response.data);
-    } catch (err) {
-      console.error('Error fetching total balance:', err);
-    }
-  };
-
-  //Fetch total savings
-  const fetchTotalSavings = async () => {
-    try {
-      const response = await axios.get('/api/savings-goals/savings-balance', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setTotalSavings(response.data);
-    } catch (err) {
-      console.error('Error fetching total balance:', err);
-    }
-  }
-
-  // Fetch income and expense summary based on current date filters
-  const fetchSpendingAndIncome = async () => {
-    try {
-      const response = await axios.get(
-        `/api/reports/summary?start=${startDate}&end=${endDate}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setTotalExpenses(response.data.totalSpending);
-      setTotalIncome(response.data.totalIncome);
-    } catch (err) {
-      console.error('Error fetching spending and income summary:', err);
-    }
-  };
-
-  // Fetch summary whenever date range changes
+  // Fetch summary and change data
   useEffect(() => {
+    axios.get(`${BASE_URL}/api/reports/summary?start=${startDate}&end=${endDate}`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        setTotalIncome(res.data.totalIncome);
+        setTotalExpenses(res.data.totalSpending);
+      });
 
-      fetchSpendingAndIncome();
-    
-  }, [startDate, endDate]);
+    axios.get(`${BASE_URL}/api/reports/balance`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setTotalBalance(res.data));
 
-  // Fetch total balance on mount
-  useEffect(() => {
-    fetchTotalBalance();
-    fetchTotalSavings();
-  }, []);
+    axios.get(`${BASE_URL}/api/savings-goals/savings-balance`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setTotalSavings(res.data));
 
+    axios.get(`${BASE_URL}/api/reports/balance-change`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        const map = {};
+        res.data.forEach(({ name, percentage }) => { map[name] = percentage; });
+        setChanges(map);
+      });
+  }, [startDate, endDate, token, BASE_URL]);
+
+  const handleCurrentMonth = () => { const { startDate, endDate } = getCurrentMonthRange(); setStartDate(startDate); setEndDate(endDate); };
+  const handlePreviousMonth = () => { const { startDate, endDate } = getPreviousMonthRange(); setStartDate(startDate); setEndDate(endDate); };
 
   return (
-<div className="p-4">
-
-  {/* Layout with flex: left side for summary & charts, right side for recent transactions and next payments */}
-  <div className="flex gap-4">
-
-
-    {/* *************************** Left Column ***************************** */}
-    <div className="flex-1">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <SummaryCard title="Total Balance" value={totalBalance} formatCurrency={formatCurrency} />
-        <SummaryCard title="Total Income" value={totalIncome} formatCurrency={formatCurrency} />
-        <SummaryCard title="Total Expenses" value={totalExpenses} formatCurrency={formatCurrency} />
-        <SummaryCard title="Total Savings" value={totalSavings} formatCurrency={formatCurrency} />
-      </div>
-      
-      {/* Category and Budget Bar Chart container */}
+    <div className="p-4">
+      {/* Main flex: 2 columns */}
       <div className="flex gap-4">
 
-        {/* Expense by Category */}
-        <div className="w-1/2">
-          <ExpenseByCategoryBarChart token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} />
-        </div>
-        
-        {/* Budget Bar Chart */}
-        <div className="w-1/2">
-          <BudgetBarChart token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} />
-        </div>
-      </div>
+        {/* Left Column */}
+        <div className="flex-1 flex flex-col space-y-4">
 
-      {/* CashFlow & something else */}
-      <div className="flex gap-4">
-
-        {/* CashFlow */}
-      <div className="w-1/2">
-          <CashFlow
-            token={token}
-            BASE_URL={BASE_URL}
-            userPreferredCurrency={userPreferredCurrency}
-            userPreferredLocale={userPreferredLocale}
-          />
-      </div>
-
-        {/* Balance breakdown */}
-          <div className="w-1/4">
-          <BalanceBreakdownChart token={token} BASE_URL={BASE_URL} />
+          {/* Summary Cards (full width) */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <SummaryCard title="Balance" value={totalBalance} formatCurrency={formatCurrency} change={changes.totalBalance} />
+            <SummaryCard title="Income" value={totalIncome} formatCurrency={formatCurrency} change={changes.Income} />
+            <SummaryCard title="Expenses" value={totalExpenses} formatCurrency={formatCurrency} change={changes.Expense} />
+            <SummaryCard title="Savings" value={totalSavings} formatCurrency={formatCurrency} change={changes.Savings} />
           </div>
 
-        {/* Savings */}
-          <div className="w-1/4">
-          <SavingsGoalsProgress
-              token={token}
-              BASE_URL={BASE_URL}
-              userPreferredCurrency={userPreferredCurrency}
-              userPreferredLocale={userPreferredLocale}
-          />
-    </div>
-      </div>
+          {/* Row 1: Expense by Category + Cash Flow */}
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <ExpenseByCategoryBarChart token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} />
+            </div>
+            <div className="flex-1">
+              <CashFlow token={token} BASE_URL={BASE_URL} userPreferredCurrency="EUR" userPreferredLocale="en-GB" />
+            </div>
+          </div>
 
-      {/* next row */}
-      <div className="flex gap-4">
+          {/* Row 2: Budget (1/2), Savings Goals (1/4), Balance Breakdown (1/4) */}
+          <div className="flex gap-4">
+            <div className="w-1/2">
+              <BudgetBarChart token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} />
+            </div>
+            <div className="w-1/4">
+              <SavingsGoalsProgress token={token} BASE_URL={BASE_URL} userPreferredCurrency="EUR" userPreferredLocale="en-GB" />
+            </div>
+            <div className="w-1/4">
+              <BalanceBreakdownChart token={token} BASE_URL={BASE_URL} />
+            </div>
+          </div>
 
-      </div>
+        </div>
 
+        {/* Right Column: Recent + Next Payments stacked */}
+        <div className="w-1/4 flex flex-col space-y-4">
+          <RecentTransactions token={token} BASE_URL={BASE_URL} userPreferredCurrency="EUR" userPreferredLocale="en-GB" />
+          <NextPayments token={token} BASE_URL={BASE_URL} />
+        </div>
 
-
-    </div>
-
-
-
-    {/* Right Column for Recent Transactions and Next Payments */}
-    <div className="flex gap-4">
-
-      <div className="w-1/2">
-      <RecentTransactions
-        token={token}
-        BASE_URL={BASE_URL}
-        userPreferredCurrency={userPreferredCurrency}
-        userPreferredLocale={userPreferredLocale}
-      />
-      </div>
-      <div className="w-1/2">
-      <NextPayments token={token} BASE_URL={BASE_URL} />
       </div>
     </div>
-  </div>
-</div>
-
-
   );
 };
 
