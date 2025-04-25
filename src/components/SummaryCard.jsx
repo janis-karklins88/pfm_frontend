@@ -21,8 +21,8 @@ const SummaryCard = ({ title, value, formatCurrency, change }) => {
       {/* Change vs last month */}
       {change != null && (
         <div className="mt-2 flex items-center">
-          <Icon size={16} className={isPositive ? 'text-green-500' : 'text-red-500'} />
-          <span className={`ml-1 text-sm font-medium ${isPositive ? 'text-green-600' : 'text-red-600'}`}>{Math.abs(changeValue)}%</span>
+          <Icon size={16} className={isPositive ? 'text-teal-600' : 'text-red-500'} />
+          <span className={`ml-1 text-sm font-medium ${isPositive ? 'text-teal-600' : 'text-red-600'}`}>{Math.abs(changeValue)}%</span>
           <span className="ml-2 text-xs text-gray-400">vs last month</span>
         </div>
       )}

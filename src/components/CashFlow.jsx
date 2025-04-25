@@ -1,18 +1,13 @@
+// src/components/CashFlow.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import 'chart.js/auto';
+import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { formatCurrency } from '../utils/currency';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+// Register datalabels plugin
+Bar.register && Bar.register(ChartDataLabels);
 
 const CashFlow = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale }) => {
   const [cashFlowData, setCashFlowData] = useState([]);
@@ -21,10 +16,10 @@ const CashFlow = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale 
   useEffect(() => {
     const fetchCashFlow = async () => {
       try {
-        // Adjust this endpoint if needed to fetch your monthly cash flow data
-        const response = await axios.get(`${BASE_URL}/api/reports/monthly-cashflow`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await axios.get(
+          `${BASE_URL}/api/reports/monthly-cashflow`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
         setCashFlowData(response.data);
       } catch (err) {
         console.error('Error fetching monthly cash flow data:', err);
@@ -35,86 +30,79 @@ const CashFlow = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale 
     fetchCashFlow();
   }, [token, BASE_URL]);
 
-  // Filter to keep only months where at least one value is non-zero.
-  const filteredData = cashFlowData.filter(
-    item => item.inflow !== 0 || item.outflow !== 0 || item.netFlow !== 0
-  );
-  
-  // Prepare the month labels and datasets using the filtered data.
-  const labels = filteredData.map(item => item.month);
+  // Filter out if all zero
+  const filtered = cashFlowData.filter(item => item.inflow || item.outflow || item.netFlow);
+
+  const labels = filtered.map(item => item.month.substring(0,3));
   const data = {
     labels,
     datasets: [
       {
-        label: 'Income',
-        data: filteredData.map(item => item.inflow),
-        backgroundColor: '#27AE60', // Green for Income
+        label: 'Expenses',
+        data: filtered.map(item => item.outflow),
+        backgroundColor: '#F87171', // red-400
+        borderRadius: 6,
+        borderSkipped: 'bottom',
+        maxBarThickness: 50,
       },
       {
-        label: 'Expense',
-        data: filteredData.map(item => item.outflow),
-        backgroundColor: '#E74C3C', // Red for Expense
+        label: 'Income',
+        data: filtered.map(item => item.inflow),
+        backgroundColor: '#14B8A6', // teal-500
+        borderRadius: 6,
+        maxBarThickness: 50,
+        borderSkipped: 'bottom',
+        datalabels: {
+          anchor: 'end', align: 'end',
+          formatter: val => formatCurrency(val, userPreferredCurrency, userPreferredLocale),
+          font: { weight: 'bold' }, color: '#374151'
+        }
       },
       {
         label: 'Net Flow',
-        data: filteredData.map(item => item.netFlow),
-        backgroundColor: '#3498DB', // Blue for Net Flow
-      },
-    ],
+        data: filtered.map(item => item.netFlow),
+        backgroundColor: '#60A5FA', // blue-400
+        borderRadius: 6,
+        borderSkipped: 'bottom',
+        maxBarThickness: 50,
+      }
+    ]
   };
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
-      legend: {
-        position: 'top', // Legend (color labels) appear on top
-      },
-      title: {
-        display: true,
-        text: 'Monthly Cash Flow',
-      },
+      legend: { position: 'top', align: 'end', labels: { boxWidth: 12, padding: 16 } },
+      datalabels: {display: false},
     },
     scales: {
       x: {
-        title: {
-          display: true,
-          text: 'Month',
-        },
+        ticks: { autoSkip: false },
+        grid: { display: false },
+        categoryPercentage: 0.6, barPercentage: 0.6,
       },
       y: {
-        title: {
-          display: false,
-          text: 'Money',
-        },
-        ticks: {
-          beginAtZero: true,
-          // Format the y-axis ticks as currency using your formatCurrency utility
-          callback: (value) =>
-            formatCurrency(value, userPreferredCurrency, userPreferredLocale),
-        },
-      },
-    },
+        beginAtZero: true,
+        ticks: { callback: v => formatCurrency(v, userPreferredCurrency, userPreferredLocale) }
+      }
+    }
   };
 
   return (
-    <div className="bg-white shadow-md rounded p-4 mt-4">
-      <h2 className="text-lg font-bold mb-2">Monthly Cash Flow</h2>
+    <div className="relative bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
+      {/* Accent Bar */}
+      <div className="absolute -top-2 left-6 w-16 h-1 bg-gradient-to-r from-teal-400 to-blue-500 rounded-full" />
+      <h3 className="text-lg font-semibold text-gray-700 mb-4">Monthly Cash Flow</h3>
+
       {loading ? (
-        <p>Loading cash flow data...</p>
-      ) : filteredData.length > 0 ? (
-        <Bar data={data}
-        options={{
-                plugins: {
-                  legend: {
-                    display: true,
-                  },
-                  datalabels: {
-                    display: false,
-                  }
-                },
-              }}  />
+        <p className="text-sm text-gray-500">Loading cash flow data...</p>
+      ) : filtered.length > 0 ? (
+        <div className="h-64">
+          <Bar data={data} options={options} />
+        </div>
       ) : (
-        <p>No cash flow data available.</p>
+        <p className="text-sm text-gray-500">No cash flow data available.</p>
       )}
     </div>
   );

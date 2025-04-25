@@ -4,9 +4,11 @@ import axios from 'axios';
 import { formatCurrency } from "../utils/currency";
 import { formatDate } from "../utils/dateUtils";
 import { ArrowRightCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const NextPayments = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale }) => {
   const [nextPayments, setNextPayments] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchNextPayments = async () => {
@@ -31,7 +33,11 @@ const NextPayments = ({ token, BASE_URL, userPreferredCurrency, userPreferredLoc
       {/* Header with view-all icon */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-700">Next Payments</h3>
+        <button
+        onClick={() => navigate('/recurringexpenses')}
+        >
         <ArrowRightCircle size={20} className="text-gray-400 hover:text-gray-600 cursor-pointer" />
+        </button>
       </div>
 
       {/* Payments List: one row per payment */}
@@ -45,7 +51,7 @@ const NextPayments = ({ token, BASE_URL, userPreferredCurrency, userPreferredLoc
               <div className="text-sm text-gray-600 w-2/6">{formatDate(payment.nextDueDate)}</div>
 
               {/* Payment Name */}
-              <div className="text-sm text-gray-800 truncate w-3/6">
+              <div className="text-sm font-semibold text-gray-800 truncate w-3/6">
                 {payment.name || 'Untitled Payment'}
               </div>
 

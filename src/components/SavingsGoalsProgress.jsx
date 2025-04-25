@@ -1,3 +1,4 @@
+// src/components/SavingsGoalsProgress.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { formatCurrency } from '../utils/currency';
@@ -5,45 +6,51 @@ import { formatCurrency } from '../utils/currency';
 const SavingsGoalsProgress = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale }) => {
   const [savingsGoals, setSavingsGoals] = useState([]);
 
-  const fetchSavingsGoals = async () => {
-    try {
-      const response = await axios.get(`${BASE_URL}/api/savings-goals`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setSavingsGoals(response.data);
-    } catch (error) {
-      console.error('Error fetching savings goals:', error);
-    }
-  };
-
+  // Fetch savings goals
   useEffect(() => {
-    fetchSavingsGoals();
+    const fetchGoals = async () => {
+      try {
+        const { data } = await axios.get(
+          `${BASE_URL}/api/savings-goals`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        setSavingsGoals(data);
+      } catch (error) {
+        console.error('Error fetching savings goals:', error);
+      }
+    };
+    fetchGoals();
   }, [token, BASE_URL]);
 
   return (
-    <div className="bg-white shadow-md rounded p-4 mt-4">
-      <h2 className="text-lg font-bold mb-4">Savings Goals</h2>
+    <div className="relative bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
+      {/* Accent Bar */}
+      <div className="absolute -top-2 left-6 w-16 h-1 bg-gradient-to-r from-teal-400 to-blue-500 rounded-full" />
+
+      <h3 className="text-lg font-semibold text-gray-700 mb-4">Savings Goals</h3>
+
       {savingsGoals.length === 0 ? (
-        <p className="text-sm">No savings goals found.</p>
+        <p className="text-sm text-gray-500">No savings goals found.</p>
       ) : (
-        <div className="space-y-2">
-          {savingsGoals.map((goal) => {
-            // Calculate the percentage of the goal reached
-            const percentage = (goal.currentAmount / goal.targetAmount) * 100;
+        <div className="space-y-4">
+          {savingsGoals.map(goal => {
+            const { id, name, currentAmount, targetAmount } = goal;
+            const percentage = targetAmount > 0 ? Math.min(100, (currentAmount / targetAmount) * 100) : 0;
+
             return (
-              <div key={goal.id} className="border p-3 rounded">
-                <div className="flex justify-between mb-2">
-                  <span className="font-bold">{goal.name}</span>
-                  <span className="text-sm">
-                    {formatCurrency(goal.currentAmount, userPreferredCurrency, userPreferredLocale)}{' '}
-                    / {formatCurrency(goal.targetAmount, userPreferredCurrency, userPreferredLocale)}
+              <div key={id}>
+                <div className="flex justify-between items-center mb-2 text-sm font-medium text-gray-700">
+                  <span className="truncate">{name}</span>
+                  <span>
+                    {formatCurrency(currentAmount, userPreferredCurrency, userPreferredLocale)}{' '}
+                    / {formatCurrency(targetAmount, userPreferredCurrency, userPreferredLocale)}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                   <div
-                    className="bg-blue-500 h-2 rounded-full"
-                    style={{ width: `${percentage}%` }}
-                  ></div>
+                    className="bg-teal-500 h-2"
+                    style={{ width: `${percentage}%`, borderRadius: '4px' }}
+                  />
                 </div>
               </div>
             );
