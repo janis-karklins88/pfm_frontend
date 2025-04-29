@@ -1,143 +1,106 @@
+// src/components/MonthlyExpenseChart.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { formatCurrency } from '../utils/currency';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, ChartDataLabels);
+// Register datalabels plugin
+Line.register && Line.register(ChartDataLabels);
 
 const MonthlyExpenseChart = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale }) => {
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch expense data (historical + prediction) from your endpoint.
-        // Expected response: an object whose keys are month labels and values are expense amounts.
-        const response = await axios.get(`${BASE_URL}/api/reports/expense-and-prediction`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = response.data; 
-        // For example: { "JAN": 1000, "FEB": 1200, ..., "OCT": 1300, "NOV": 1400, "DEC": 0, "JAN_pred": 1500, "FEB_pred": 1550 }
+        const response = await axios.get(
+          `${BASE_URL}/api/reports/expense-and-prediction`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        const data = response.data;
         const allLabels = Object.keys(data);
-        const allValues = Object.values(data).map(val => Number(val));
-        
-        const historicalCount = 10; // First 10 entries are historical
-        
-        // Separate historical and predicted data.
+        const allValues = Object.values(data).map(v => Number(v));
+
+        const historicalCount = 10;
         const historicalLabels = allLabels.slice(0, historicalCount);
         const historicalValues = allValues.slice(0, historicalCount);
         const predictedLabels = allLabels.slice(historicalCount);
         const predictedValues = allValues.slice(historicalCount);
-        
-        // Filter out historical months with 0 expense.
-        const filteredHistorical = historicalLabels.map((label, i) => ({ label, value: historicalValues[i] }))
-                                  .filter(item => item.value !== 0);
-        // Leave predicted data as is (or you could also filter them if needed).
-        const filteredPredicted = predictedLabels.map((label, i) => ({ label, value: predictedValues[i] }))
-                                  .filter(item => item.value !== 0);
-        
-        // Merge the filtered historical and predicted data.
-        const mergedLabels = filteredHistorical.map(item => item.label)
-                              .concat(filteredPredicted.map(item => item.label));
-        const mergedValues = filteredHistorical.map(item => item.value)
-                              .concat(filteredPredicted.map(item => item.value));
-        
-        // Use the count of filtered historical months for styling the line.
-        const filteredHistoricalCount = filteredHistorical.length;
-        
-        // Create Chart.js data – one dataset that spans both historical and predicted data.
-        const chartJSData = {
+
+        const filteredHistorical = historicalLabels.map((label,i) => ({ label, value: historicalValues[i] })).filter(item => item.value !== 0);
+        const filteredPredicted  = predictedLabels.map((label,i) => ({ label, value: predictedValues[i] })).filter(item => item.value !== 0);
+
+        const mergedLabels = [...filteredHistorical, ...filteredPredicted].map(item => item.label);
+        const mergedValues = [...filteredHistorical, ...filteredPredicted].map(item => item.value);
+        const histLen = filteredHistorical.length;
+
+        setChartData({
           labels: mergedLabels,
-          datasets: [
-            {
-              label: 'Expense',
-              data: mergedValues,
-              borderColor: 'rgba(75,192,192,1)',
-              backgroundColor: 'rgba(75,192,192,0.2)',
-              tension: 0.3,
-              fill: false,
-              // Use the segment plugin to style the predicted portion with a dashed line.
-              segment: {
-                borderDash: (ctx) => {
-                  // When the segment starts after the last historical data point, use dashed border.
-                  return ctx.p0DataIndex >= filteredHistoricalCount - 1 ? [5, 5] : [];
-                }
-              }
+          datasets: [{
+            label: 'Expenses',
+            data: mergedValues,
+            borderColor: '#14B8A6',             // teal-500
+            backgroundColor: 'rgba(20,184,166,0.2)',
+            tension: 0.3,
+            fill: true,
+            pointBackgroundColor: '#14B8A6',
+            pointBorderColor: '#fff',
+            segment: {
+              borderDash: ctx => ctx.p0DataIndex >= histLen - 1 ? [5,5] : []
             }
-          ]
-        };
-        setChartData(chartJSData);
-      } catch (error) {
-        console.error('Error fetching monthly expense data:', error);
+          }]
+        });
+      } catch (err) {
+        console.error('Error fetching monthly expense:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
   }, [token, BASE_URL]);
-  
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      // Remove the built-in legend.
       legend: { display: false },
-      // Add a title.
       title: { display: true, text: 'Monthly Expenses' },
       datalabels: {
-        anchor: 'center',
-        align: 'top',
-        offset: 4,  // Moves labels away from the edge.
-        clamp: true,  // Ensures labels do not overflow the chart area.
-        formatter: (value) => value !== null ? formatCurrency(value, userPreferredCurrency, userPreferredLocale) : '',
-        font: { weight: 'bold' },
-        color: '#000'
+        display: ctx => ctx.dataIndex !== 0,
+        anchor: 'end', align: 'top', offset: 4, clamp: true,
+        formatter: v => formatCurrency(v, userPreferredCurrency, userPreferredLocale),
+        font: { weight: 'bold' }, color: '#374151'
       },
       tooltip: {
-        callbacks: {
-          label: (context) =>
-            formatCurrency(context.raw, userPreferredCurrency, userPreferredLocale)
-        }
+        callbacks: { label: ctx => formatCurrency(ctx.raw, userPreferredCurrency, userPreferredLocale) }
       }
     },
     scales: {
-      x: {
-        title: { display: false },
-      },
+      x: { offset: false, ticks: { autoSkip: false }, grid: { display: true } },
       y: {
-        title: { display: false },
-        min: 0,
-        ticks: {
-          beginAtZero: true,
-          stepSize: 100,
-          callback: (value) =>
-            formatCurrency(value, userPreferredCurrency, userPreferredLocale),
-        },
-      },
+        beginAtZero: true,
+        ticks: { callback: v => formatCurrency(v, userPreferredCurrency, userPreferredLocale) }
+      }
     }
   };
 
   return (
-    <div className="bg-white shadow-md rounded p-4 mt-4 ">
+    <div className="relative bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
+      {/* Accent Bar */}
+      <div className="absolute -top-2 left-6 w-16 h-1 bg-gradient-to-r from-teal-400 to-teal-500 rounded-full" />
+      <h3 className="text-lg font-semibold text-gray-700 mb-4">Monthly Expenses</h3>
+
       {loading ? (
-        <p>Loading chart data...</p>
+        <p className="text-sm text-gray-500">Loading chart data...</p>
       ) : chartData ? (
-        <div style={{ height: '300px', width: '100%' }}>
-        <Line data={chartData} options={options} plugins={[ChartDataLabels]} />
-      </div>
+        <div className="h-64">
+          <Line data={chartData} options={options} plugins={[ChartDataLabels]} redraw />
+        </div>
       ) : (
-        <p>No data available.</p>
+        <p className="text-sm text-gray-500">No data available.</p>
       )}
     </div>
   );

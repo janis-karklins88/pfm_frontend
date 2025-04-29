@@ -1,19 +1,13 @@
+// src/components/NetMonthlyBalanceChart.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Line } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { formatCurrency } from '../utils/currency';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend, ChartDataLabels);
+// Register datalabels plugin
+Line.register && Line.register(ChartDataLabels);
 
 const NetMonthlyBalanceChart = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale }) => {
   const [chartData, setChartData] = useState(null);
@@ -22,96 +16,89 @@ const NetMonthlyBalanceChart = ({ token, BASE_URL, userPreferredCurrency, userPr
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch net monthly balance from your endpoint.
-        // Expected response: an object with keys as month labels and values as the net savings amount.
-        const response = await axios.get(`${BASE_URL}/api/savings-goals/net-balance`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = response.data; // e.g. { "JAN": 500, "FEB": 600, "MAR": 700, ... }
-        
+        const { data } = await axios.get(
+          `${BASE_URL}/api/savings-goals/net-balance`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
         const labels = Object.keys(data);
-        const values = Object.values(data).map(val => Number(val));
-        
-        const chartJSData = {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Net Savings',
-              data: values,
-              borderColor: 'rgba(54, 162, 235, 1)', // Blue tone
-              backgroundColor: 'rgba(54, 162, 235, 0.2)',
-              tension: 0.3,
-              fill: false,
-              pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-              pointBorderColor: '#fff'
-            }
-          ]
-        };
-        
-        setChartData(chartJSData);
-      } catch (error) {
-        console.error('Error fetching net monthly balance data:', error);
+        const values = Object.values(data).map(Number);
+
+        setChartData({
+          labels,
+          datasets: [{
+            label: 'Net Savings',
+            data: values,
+            borderColor: '#14B8A6',         // teal-500
+            backgroundColor: 'rgba(20, 184, 166, 0.2)', // translucent teal
+            tension: 0.3,
+            fill: true,
+            pointBackgroundColor: '#14B8A6',
+            pointBorderColor: '#fff',
+          }]
+        });
+      } catch (err) {
+        console.error('Error fetching net monthly balance data:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
   }, [token, BASE_URL]);
-  
+
   const options = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
-      legend: {
-        display: false, // Hide the default legend
-      },
+      legend: { display: false },
       title: {
         display: true,
-        text: 'Net Monthly Deposits in to Savings',
+        text: 'Net Monthly Savings',
       },
       datalabels: {
-        anchor: 'center',
-        align: 'top',
+        display: ctx => ctx.dataIndex !== 0,
+        anchor: ctx => (ctx.raw < 0 ? 'start' : 'end'),
+        align: ctx => (ctx.raw < 0 ? 'bottom' : 'top'),
         offset: 4,
         clamp: true,
-        formatter: (value) => value !== null ? formatCurrency(value, userPreferredCurrency, userPreferredLocale) : '',
+        formatter: value => formatCurrency(value, userPreferredCurrency, userPreferredLocale),
         font: { weight: 'bold' },
-        color: '#000'
+        color: '#374151',
       },
       tooltip: {
         callbacks: {
-          label: (context) =>
-            formatCurrency(context.raw, userPreferredCurrency, userPreferredLocale)
+          label: context => formatCurrency(context.raw, userPreferredCurrency, userPreferredLocale)
         }
       }
     },
     scales: {
       x: {
-        title: { display: false },
+        offset: false,
+        ticks: { autoSkip: false },
+        grid: { display: true }
       },
       y: {
-        title: { display: false },
-        min: 0, // Force the y-axis to start from 0
+        beginAtZero: false,    // allow negative values to show
         ticks: {
-          beginAtZero: true,
-          stepSize: 100,
-          callback: (value) =>
-            formatCurrency(value, userPreferredCurrency, userPreferredLocale),
-        },
-      },
+          callback: value => formatCurrency(value, userPreferredCurrency, userPreferredLocale)
+        }
+      }
     }
   };
 
   return (
-    <div className="bg-white shadow-md rounded p-4 mt-4">
+    <div className="relative bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
+      {/* Accent Bar */}
+      <div className="absolute -top-2 left-6 w-16 h-1 bg-gradient-to-r from-teal-400 to-teal-500 rounded-full" />
+      <h3 className="text-lg font-semibold text-gray-700 mb-4">Net Monthly Savings</h3>
+
       {loading ? (
-        <p>Loading chart data...</p>
+        <p className="text-sm text-gray-500">Loading chart data...</p>
       ) : chartData ? (
-        <div style={{ height: '300px', width: '100%' }}>
-          <Line data={chartData} options={options} plugins={[ChartDataLabels]} />
+        <div className="h-64">
+          <Line data={chartData} options={options} plugins={[ChartDataLabels]} redraw={true} />
         </div>
       ) : (
-        <p>No data available.</p>
+        <p className="text-sm text-gray-500">No data available.</p>
       )}
     </div>
   );

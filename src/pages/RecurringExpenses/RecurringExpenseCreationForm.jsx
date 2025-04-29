@@ -9,23 +9,17 @@ const RecurringExpenseCreationForm = ({
   categories,
   refreshAccountsAndCategories
 }) => {
-  // State variables for each recurring expense field
   const [newRecExpName, setNewRecExpName] = useState('');
   const [newRecExpAmount, setNewRecExpAmount] = useState('');
   const [newRecExpStartDate, setNewRecExpStartDate] = useState('');
   const [newRecExpFrequency, setNewRecExpFrequency] = useState('');
-  // For account, we continue to use accountName (if backend expects name)
   const [newRecExpAccount, setNewRecExpAccount] = useState('');
-  // For category, we now use category id instead of category name
   const [newRecExpCategory, setNewRecExpCategory] = useState('');
   const [error, setError] = useState('');
-  
-  // State for controlling the "Add New Category" modal
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
-  // Handler for creating a new recurring expense
-  const handleCreateRecurringExpense = async (e) => {
+  const handleCreateRecurringExpense = async e => {
     e.preventDefault();
     try {
       const payload = {
@@ -34,13 +28,13 @@ const RecurringExpenseCreationForm = ({
         startDate: newRecExpStartDate,
         frequency: newRecExpFrequency,
         accountName: newRecExpAccount,
-        // Send the categoryId (not name)
         categoryId: newRecExpCategory,
       };
-      await axios.post(`${BASE_URL}/api/recurring-expenses`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      // Clear the form fields
+      await axios.post(
+        `${BASE_URL}/api/recurring-expenses`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setNewRecExpName('');
       setNewRecExpAmount('');
       setNewRecExpStartDate('');
@@ -49,82 +43,75 @@ const RecurringExpenseCreationForm = ({
       setNewRecExpCategory('');
       onExpenseCreated();
     } catch (err) {
-      console.error('Failed to create recurring expense', err);
-      const errorMsg =
-        err.response && err.response.data && err.response.data.message
-          ? err.response.data.message
-          : 'Failed to create recurring expense';
-      setError(errorMsg);
+      const msg = err.response?.data?.message || 'Failed to create recurring expense';
+      setError(msg);
     }
   };
 
-  // Handler for adding a new category via the modal
   const handleAddCategory = async () => {
     try {
-      const payload = { name: newCategoryName };
-      const res = await axios.post(`${BASE_URL}/api/categories`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      // Refresh accounts and categories lists
+      const res = await axios.post(
+        `${BASE_URL}/api/categories`,
+        { name: newCategoryName },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       refreshAccountsAndCategories();
-      // Set the recurring expense's category to the newly created category's id
       setNewRecExpCategory(res.data.id);
       setNewCategoryName('');
       setShowCategoryModal(false);
     } catch (err) {
-      console.error('Failed to add category', err);
-      const errorMsg =
-        err.response && err.response.data && err.response.data.message
-          ? err.response.data.message
-          : 'Failed to add category';
-      setError(errorMsg);
+      const msg = err.response?.data?.message || 'Failed to add category';
+      setError(msg);
     }
   };
 
   return (
     <div>
-      {/* Horizontal Recurring Expense Creation Form */}
-      <form onSubmit={handleCreateRecurringExpense} className="flex flex-row gap-4 items-end mb-6">
-        {/* Expense Name Field */}
+      <form onSubmit={handleCreateRecurringExpense} className="flex flex-wrap gap-2 items-end mb-6">
+        {/* Name */}
         <div>
           <label className="block text-sm mb-1">Expense Name</label>
           <input
             type="text"
             value={newRecExpName}
-            onChange={(e) => setNewRecExpName(e.target.value)}
-            placeholder="Expense Name"
-            className="border p-2 rounded"
+            onChange={e => setNewRecExpName(e.target.value)}
+
+            className="border border-gray-300 text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
+            required
           />
         </div>
-        {/* Amount Field */}
+        {/* Amount */}
         <div>
           <label className="block text-sm mb-1">Amount</label>
           <input
             type="number"
             step="0.01"
             value={newRecExpAmount}
-            onChange={(e) => setNewRecExpAmount(e.target.value)}
-            placeholder="Amount"
-            className="border p-2 rounded"
+            onChange={e => setNewRecExpAmount(e.target.value)}
+
+            className="border border-gray-300 text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
+            required
           />
         </div>
-        {/* Start Date Field */}
+        {/* Start Date */}
         <div>
           <label className="block text-sm mb-1">Start Date</label>
           <input
             type="date"
             value={newRecExpStartDate}
-            onChange={(e) => setNewRecExpStartDate(e.target.value)}
-            className="border p-2 rounded"
+            onChange={e => setNewRecExpStartDate(e.target.value)}
+            className="border border-gray-300 text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
+            required
           />
         </div>
-        {/* Frequency Dropdown */}
+        {/* Frequency */}
         <div>
           <label className="block text-sm mb-1">Frequency</label>
           <select
             value={newRecExpFrequency}
-            onChange={(e) => setNewRecExpFrequency(e.target.value)}
-            className="border p-2 rounded"
+            onChange={e => setNewRecExpFrequency(e.target.value)}
+            className="border border-gray-300 bg-white text-sm px-3 py-1 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-300"
+            required
           >
             <option value="">Select Frequency</option>
             <option value="WEEKLY">Weekly</option>
@@ -132,74 +119,65 @@ const RecurringExpenseCreationForm = ({
             <option value="ANNUALLY">Annually</option>
           </select>
         </div>
-        {/* Account Dropdown */}
+        {/* Account */}
         <div>
           <label className="block text-sm mb-1">Account</label>
           <select
             value={newRecExpAccount}
-            onChange={(e) => setNewRecExpAccount(e.target.value)}
-            className="border p-2 rounded"
+            onChange={e => setNewRecExpAccount(e.target.value)}
+            className="border border-gray-300 bg-white text-sm px-3 py-1 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-300"
+            required
           >
             <option value="">Select Account</option>
             {accounts.map(acc => (
-              <option key={acc.id} value={acc.name}>
-                {acc.name}
-              </option>
+              <option key={acc.id} value={acc.name}>{acc.name}</option>
             ))}
           </select>
         </div>
-        {/* Category Dropdown */}
+        {/* Category */}
         <div>
           <label className="block text-sm mb-1">Category</label>
           <select
             value={newRecExpCategory}
-            onChange={(e) => {
-              if (e.target.value === 'addNew') {
-                setShowCategoryModal(true);
-              } else {
-                setNewRecExpCategory(e.target.value);
-              }
+            onChange={e => {
+              if (e.target.value === 'addNew') setShowCategoryModal(true);
+              else setNewRecExpCategory(e.target.value);
             }}
-            className="border p-2 rounded"
+            className="border border-gray-300 bg-white text-sm px-3 py-1 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-300"
+            required
           >
             <option value="">Select Category</option>
-            {/* Map through categories using category id as value */}
             {categories.map(cat => (
-              <option key={cat.id} value={cat.id}>
-                {cat.name}
-              </option>
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
             <option value="addNew">Add New Category</option>
           </select>
         </div>
         {/* Create Button */}
         <div>
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+          <button type="submit" className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">
             Create
           </button>
         </div>
       </form>
 
-      {/* Modal for adding a new category */}
+      {/* Add Category Modal */}
       {showCategoryModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg">
-            {/* Modal Header */}
-            <h3 className="text-xl font-bold mb-4">Add New Category</h3>
-            {/* Input for new category name */}
+          <div className="bg-white p-6 rounded-lg shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">Add New Category</h3>
             <input
               type="text"
               value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
+              onChange={e => setNewCategoryName(e.target.value)}
               placeholder="Category Name"
-              className="border p-2 rounded mb-4"
+              className="border border-gray-300 text-sm px-3 py-1 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-teal-300"
             />
-            {/* Modal Action Buttons */}
-            <div className="flex gap-4">
-              <button onClick={handleAddCategory} className="bg-blue-500 text-white px-4 py-2 rounded">
+            <div className="flex gap-2">
+              <button onClick={handleAddCategory} className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">
                 Save
               </button>
-              <button onClick={() => setShowCategoryModal(false)} className="bg-gray-500 text-white px-4 py-2 rounded">
+              <button onClick={() => setShowCategoryModal(false)} className="bg-gray-500 text-white text-sm px-3 py-1 rounded-lg">
                 Cancel
               </button>
             </div>
@@ -207,8 +185,7 @@ const RecurringExpenseCreationForm = ({
         </div>
       )}
 
-      {/* Display error message if any */}
-      {error && <p className="text-red-500 mt-4">{error}</p>}
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
     </div>
   );
 };

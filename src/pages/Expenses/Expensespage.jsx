@@ -74,45 +74,28 @@ const ExpensePage = () => {
       <div className="flex flex-wrap gap-2 mb-4">
         <button
           onClick={() => handlePreset('current')}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg"
         >
           Current Month
         </button>
         <button
           onClick={() => handlePreset('last')}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg"
         >
           Last Month
         </button>
-        <button
-          onClick={() => handlePreset('2ago')}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          2 Months Ago
-        </button>
-        <button
-          onClick={() => handlePreset('3ago')}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          3 Months Ago
-        </button>
-        <button
-          onClick={() => handlePreset('4ago')}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          4 Months Ago
-        </button>
+        
         <input
           type="date"
           value={startDate}
           onChange={(e) => setStartDate(e.target.value)}
-          className="border p-2 rounded"
+          className="border border-gray-300 text-sm p-2 rounded-lg focus:ring-2 focus:ring-teal-300"
         />
         <input
           type="date"
           value={endDate}
           onChange={(e) => setEndDate(e.target.value)}
-          className="border p-2 rounded"
+          className="border border-gray-300 text-sm p-2 rounded-lg focus:ring-2 focus:ring-teal-300"
         />
       </div>
 

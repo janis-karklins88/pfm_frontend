@@ -1,293 +1,213 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import BudgetCreationForm from './BudgetCreationForm';
-import { formatCurrency } from "../../utils/currency";
-import { getCurrentMonthRange, getPreviousMonthRange, getNextMonthRange, formatDate } from '../../utils/dateUtils';
+import { formatCurrency } from '../../utils/currency';
+import { getCurrentMonthRange, getNextMonthRange, formatDate } from '../../utils/dateUtils';
+import { Edit2Icon, CheckIcon, Trash2Icon } from 'lucide-react';
 
 const Budgets = () => {
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   const token = localStorage.getItem('token');
 
-  // State for storing budgets retrieved from the backend
+  // State
   const [budgets, setBudgets] = useState([]);
   const [totalSpent, setTotalSpent] = useState({});
-  const { startDate: initialStart, endDate: initialEnd } = getCurrentMonthRange();
-  const [startDate, setStartDate] = useState(initialStart);
-  const [endDate, setEndDate] = useState(initialEnd);
-  const [error, setError] = useState('');
+  const { startDate: initStart, endDate: initEnd } = getCurrentMonthRange();
+  const [startDate, setStartDate] = useState(initStart);
+  const [endDate, setEndDate] = useState(initEnd);
   const [editBudgetId, setEditBudgetId] = useState(null);
   const [editAmount, setEditAmount] = useState('');
   const [showBudgetForm, setShowBudgetForm] = useState(false);
+  const [error, setError] = useState('');
 
-  // Currency settings
   const userPreferredCurrency = 'EUR';
   const userPreferredLocale = 'en-GB';
 
-  useEffect(() => {
-    handleCurrentMonth();
-  }, []);
-
-  const handleCurrentMonth = () => {
-    const { startDate, endDate } = getCurrentMonthRange();
-    setStartDate(startDate);
-    setEndDate(endDate);
-  };
-
-  const handlePreviousMonth = () => {
-    const { startDate, endDate } = getPreviousMonthRange();
-    setStartDate(startDate);
-    setEndDate(endDate);
-  };
-
-  // Handle next month filter
-  const handleNextMonth = () => {
-    const { startDate, endDate } = getNextMonthRange();
-    setStartDate(startDate);
-    setEndDate(endDate);
-  };
-
-  // Fetch budgets from the backend, applying any set filters
+  // Fetch budgets and spent amounts
   const fetchBudgets = async () => {
     try {
       let url = `${BASE_URL}/api/budgets`;
       const params = new URLSearchParams();
       if (startDate) params.append('filterStart', startDate);
       if (endDate) params.append('filterEnd', endDate);
-      if (params.toString()) {
-        url += `?${params.toString()}`;
-      }
-      const res = await axios.get(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (params.toString()) url += `?${params.toString()}`;
+
+      const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
       setBudgets(res.data);
       setError('');
 
-      // For each budget, fetch the total spent amount in parallel.
-      const totalSpentMap = {};
+      const spentMap = {};
       await Promise.all(
-        res.data.map(async (budget) => {
+        res.data.map(async b => {
           try {
-            const resSpent = await axios.get(
-              `${BASE_URL}/api/budgets/spent/${budget.id}`,
+            const { data } = await axios.get(
+              `${BASE_URL}/api/budgets/spent/${b.id}`,
               { headers: { Authorization: `Bearer ${token}` } }
             );
-            totalSpentMap[budget.id] = resSpent.data;
-          } catch (err) {
-            totalSpentMap[budget.id] = 'Error';
+            spentMap[b.id] = data;
+          } catch {
+            spentMap[b.id] = 0;
           }
         })
       );
-      setTotalSpent(totalSpentMap);
+      setTotalSpent(spentMap);
     } catch (err) {
-      console.error('Failed to fetch budgets', err);
-      const errorMsg =
-        err.response && err.response.data && err.response.data.message
-          ? err.response.data.message
-          : 'Failed to fetch budgets';
-      setError(errorMsg);
+      setError('Failed to load budgets');
     }
   };
 
-  // When startDate or endDate changes, fetch budgets
-  useEffect(() => {
-    fetchBudgets();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [startDate, endDate]);
-
-  // Called when the user clicks the Edit button for a budget.
-  const handleEditClick = (budget) => {
-    setEditBudgetId(budget.id);
-    setEditAmount(budget.amount);
+  // Preset handlers
+  const handleThisMonth = () => {
+    const { startDate, endDate } = getCurrentMonthRange();
+    setStartDate(startDate);
+    setEndDate(endDate);
+  };
+  const handleNextMonth = () => {
+    const { startDate, endDate } = getNextMonthRange();
+    setStartDate(startDate);
+    setEndDate(endDate);
   };
 
-  // Called when the user clicks Save after editing the budget amount.
-  const handleEditSave = async (budgetId) => {
+  // Effects
+  useEffect(() => {
+    handleThisMonth();
+  }, []);
+  useEffect(() => {
+    fetchBudgets();
+  }, [startDate, endDate]);
+
+  // Inline edit save
+  const saveEdit = async id => {
     try {
       await axios.patch(
-        `${BASE_URL}/api/budgets/${budgetId}`,
+        `${BASE_URL}/api/budgets/${id}`,
         { amount: editAmount },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      // Reset editing states and re-fetch budgets to reflect the update.
       setEditBudgetId(null);
       setEditAmount('');
       fetchBudgets();
-    } catch (err) {
-      console.error('Failed to update budget', err);
-      const errorMsg =
-        err.response && err.response.data && err.response.data.message
-          ? err.response.data.message
-          : 'Failed to update budget';
-      setError(errorMsg);
+    } catch {
+      setError('Failed to update budget');
     }
   };
 
-  // Called when the user wants to delete a budget.
-  const handleDelete = async (id) => {
-    try {
-      await axios.delete(`${BASE_URL}/api/budgets/${id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      fetchBudgets();
-    } catch (err) {
-      console.error('Failed to delete budget', err);
-      const errorMsg =
-        err.response && err.response.data && err.response.data.message
-          ? err.response.data.message
-          : 'Failed to delete budget';
-      setError(errorMsg);
-    }
-  };
-
-  // New handler to update the monthly flag using a checkbox.
-  const handleMonthlyChange = async (budgetId, newValue) => {
-    try {
-      await axios.patch(
-        `${BASE_URL}/api/budgets/${budgetId}/monthly?active=${newValue}`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchBudgets();
-    } catch (err) {
-      console.error('Failed to update monthly status', err);
-      setError('Failed to update monthly status');
+  const handleDelete = async id => {
+    if (window.confirm('Delete this budget?')) {
+      try {
+        await axios.delete(`${BASE_URL}/api/budgets/${id}`, { headers: { Authorization: `Bearer ${token}` } });
+        fetchBudgets();
+      } catch {
+        setError('Failed to delete budget');
+      }
     }
   };
 
   return (
-    <div className="p-6">
-      {/* Page Header */}
-      <h1 className="text-3xl font-bold mb-4">Budgets</h1>
-
-      {/* Button to toggle the Budget Creation Form */}
-      <div className="mb-4">
-        <button
-          onClick={() => setShowBudgetForm(!showBudgetForm)}
-          className="bg-green-500 text-white px-4 py-2 rounded"
-        >
-          {showBudgetForm ? 'Cancel Budget Creation' : 'Create Budget'}
-        </button>
-      </div>
-
-      {/* Render the Budget Creation Form if toggled */}
+    <div className="relative bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
+      <div className="absolute -top-2 left-6 w-16 h-1 bg-gradient-to-r from-teal-400 to-teal-600 rounded-full" />
+      <h1 className="text-2xl font-bold text-gray-700 mb-4">Budgets</h1>
+      <button
+        onClick={() => setShowBudgetForm(!showBudgetForm)}
+        className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg mb-4"
+      >
+        {showBudgetForm ? 'Cancel' : 'Create Budget'}
+      </button>
       {showBudgetForm && (
-        <BudgetCreationForm token={token} BASE_URL={BASE_URL} onBudgetCreated={fetchBudgets} />
+        <BudgetCreationForm
+          token={token}
+          BASE_URL={BASE_URL}
+          onBudgetCreated={() => { fetchBudgets(); setShowBudgetForm(false); }}
+        />
       )}
 
-      {/* Display error message if any */}
-      {error && <p className="text-red-500 mt-4">{error}</p>}
-
-      {/* Filtering Options */}
-      <div className="mb-4 flex flex-wrap gap-2">
-        <button onClick={handleCurrentMonth} className="bg-blue-500 text-white px-4 py-2 rounded">
-          Current Month
-        </button>
-        <button onClick={handlePreviousMonth} className="bg-blue-500 text-white px-4 py-2 rounded">
-          Previous Month
-        </button>
-        <button
-          type="button"
-          onClick={handleNextMonth}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Next Month
-        </button>
+      {/* Filters */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <button onClick={handleThisMonth} className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">This Month</button>
+        <button onClick={handleNextMonth} className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">Next Month</button>
+        <button onClick={() => { setStartDate(''); setEndDate(''); }} className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">All</button>
         <input
           type="date"
           value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          className="border p-2 rounded"
-          placeholder="Start Date"
+          onChange={e => setStartDate(e.target.value)}
+          className="border border-gray-300 text-sm px-3 py-1 rounded-lg focus:ring-2 focus:ring-teal-300"
         />
         <input
           type="date"
           value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          className="border p-2 rounded"
-          placeholder="End Date"
+          onChange={e => setEndDate(e.target.value)}
+          className="border border-gray-300 text-sm px-3 py-1 rounded-lg focus:ring-2 focus:ring-teal-300"
         />
       </div>
 
       {/* Budgets Table */}
-      <table className="min-w-full bg-white">
-        <thead>
-          <tr>
-            <th className="py-2 px-4 border-b">Category</th>
-            <th className="py-2 px-4 border-b">Budgeted Amount</th>
-            <th className="py-2 px-4 border-b">Total Spent</th>
-            <th className="py-2 px-4 border-b">Start Date</th>
-            <th className="py-2 px-4 border-b">End Date</th>
-            <th className="py-2 px-4 border-b">Monthly</th>
-            <th className="py-2 px-4 border-b">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {budgets.length === 0 ? (
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-teal-50">
             <tr>
-              <td className="py-2 px-4 border-b" colSpan="7">
-                No budgets found.
-              </td>
+              {['Category','Budgeted','Spent','Start','End','Monthly',''].map(col => (
+                <th
+                  key={col}
+                  className="px-4 py-2 text-left text-xs font-semibold text-teal-500 uppercase tracking-wide"
+                >{col}</th>
+              ))}
             </tr>
-          ) : (
-            budgets.map((budget) => (
-              <tr key={budget.id}>
-                <td className="py-2 px-4 border-b">
-                  {budget.category?.name || 'N/A'}
-                </td>
-                <td className="py-2 px-4 border-b">
-                  {editBudgetId === budget.id ? (
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {budgets.length === 0 ? (
+              <tr><td colSpan="7" className="px-4 py-4 text-center text-sm text-gray-500">No budgets found.</td></tr>
+            ) : budgets.map(budget => {
+              const spent = totalSpent[budget.id] || 0;
+              return (
+                <tr key={budget.id} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 text-sm text-gray-600">{budget.category?.name}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-700">
+                    {editBudgetId === budget.id ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          value={editAmount}
+                          onChange={e => setEditAmount(e.target.value)}
+                          className="border border-gray-300 text-sm px-2 py-1 rounded-lg"
+                        />
+                        <button onClick={() => saveEdit(budget.id)} className="p-1 rounded hover:bg-gray-100" title="Confirm edit">
+                          <CheckIcon size={16} className="text-green-500" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {formatCurrency(budget.amount, userPreferredCurrency, userPreferredLocale)}
+                        <button onClick={() => { setEditBudgetId(budget.id); setEditAmount(budget.amount); }} className="p-1 rounded hover:bg-gray-100" title="Edit budget amount">
+                          <Edit2Icon size={16} className="text-gray-500" />
+                        </button>
+                      </div>
+                    )}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{formatCurrency(spent, userPreferredCurrency, userPreferredLocale)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{formatDate(budget.startDate)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{formatDate(budget.endDate)}</td>
+                  <td className="px-4 py-3 text-sm text-center">
                     <input
-                      type="number"
-                      value={editAmount}
-                      onChange={(e) => setEditAmount(e.target.value)}
-                      className="border p-1 rounded"
+                      type="checkbox"
+                      checked={!!budget.monthly}
+                      onChange={e => axios.patch(
+                        `${BASE_URL}/api/budgets/${budget.id}/monthly?active=${e.target.checked}`,
+                        {},
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      ).then(fetchBudgets)}
                     />
-                  ) : (
-                    formatCurrency(budget.amount, userPreferredCurrency, userPreferredLocale)
-                  )}
-                </td>
-                <td className="py-2 px-4 border-b">
-                  {formatCurrency(totalSpent[budget.id], userPreferredCurrency, userPreferredLocale)}
-                </td>
-                <td className="py-2 px-4 border-b">{formatDate(budget.startDate)}</td>
-                <td className="py-2 px-4 border-b">{formatDate(budget.endDate)}</td>
-                <td className="py-2 px-4 border-b">
-                  <input
-                    type="checkbox"
-                    checked={!!budget.monthly}
-                    onChange={(e) => handleMonthlyChange(budget.id, e.target.checked)}
-                  />
-                </td>
-                <td className="py-2 px-4 border-b">
-                  {editBudgetId === budget.id ? (
-                    <button
-                      onClick={() => handleEditSave(budget.id)}
-                      className="bg-green-500 text-white px-2 py-1 rounded mr-2"
-                    >
-                      Save
+                  </td>
+                  <td className="px-4 py-3 text-sm flex gap-2 justify-end">
+                    <button onClick={() => handleDelete(budget.id)} className="p-1 rounded hover:bg-gray-100" title="Delete budget">
+                      <Trash2Icon size={16} className="text-red-500" />
                     </button>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => handleEditClick(budget)}
-                        className="bg-blue-500 text-white px-2 py-1 rounded mr-2"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(budget.id)}
-                        className="bg-red-500 text-white px-2 py-1 rounded"
-                      >
-                        Delete
-                      </button>
-                    </>
-                  )}
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
