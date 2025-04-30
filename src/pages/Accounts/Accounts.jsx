@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { formatCurrency } from "../../utils/currency";
-import { Trash2Icon, Edit2Icon } from 'lucide-react';
+import { Trash2Icon, Edit2Icon, ArrowUpDownIcon } from 'lucide-react';
 
 const Accounts = () => {
   const [accounts, setAccounts] = useState([]);
@@ -10,6 +10,13 @@ const Accounts = () => {
   const [editAccountId, setEditAccountId] = useState(null);
   const [editAccountName, setEditAccountName] = useState('');
   const [error, setError] = useState('');
+
+  // Transfer modal states
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferFromId, setTransferFromId] = useState(null);
+  const [transferAmount, setTransferAmount] = useState('');
+  const [transferType, setTransferType] = useState('Deposit'); // or Withdraw
+  const [transferAccount, setTransferAccount] = useState('');
 
   const userPreferredCurrency = 'EUR';
   const userPreferredLocale = 'en-GB';
@@ -25,8 +32,10 @@ const Accounts = () => {
       const res = await axios.get(`${BASE_URL}/api/accounts`, { headers: { Authorization: `Bearer ${token}` } });
       setAccounts(res.data);
       setError('');
-    } catch {
-      setError('Failed to fetch accounts');
+    } catch (err) {
+      console.error('Fetch accounts error:', err);
+      const msg = err.response?.data?.message || 'Failed to fetch accounts';
+      setError(msg);
     }
   };
 
@@ -41,8 +50,10 @@ const Accounts = () => {
       setNewAccountName('');
       setNewAccountAmount('');
       fetchAccounts();
-    } catch {
-      setError('Failed to add account');
+    } catch (err) {
+      console.error('Add account error:', err);
+      const msg = err.response?.data?.message || 'Failed to add account';
+      setError(msg);
     }
   };
 
@@ -51,8 +62,10 @@ const Accounts = () => {
       try {
         await axios.delete(`${BASE_URL}/api/accounts/${id}`, { headers: { Authorization: `Bearer ${token}` } });
         fetchAccounts();
-      } catch {
-        setError('Failed to delete account');
+      } catch (err) {
+        console.error('Delete account error:', err);
+        const msg = err.response?.data?.message || 'Failed to delete account';
+        setError(msg);
       }
     }
   };
@@ -73,15 +86,44 @@ const Accounts = () => {
       setEditAccountId(null);
       setEditAccountName('');
       fetchAccounts();
-    } catch {
-      setError('Failed to update account');
+    } catch (err) {
+      console.error('Edit account error:', err);
+      const msg = err.response?.data?.message || 'Failed to update account';
+      setError(msg);
     }
   };
 
   const totalBalance = accounts.reduce((sum, a) => sum + Number(a.amount), 0);
 
+  const openTransferModal = id => {
+    setTransferFromId(id);
+    setTransferAmount('');
+    setTransferType('Deposit');
+    setTransferAccount('');
+    setShowTransferModal(true);
+  };
+
+  const handleTransferSubmit = async e => {
+    e.preventDefault();
+    try {
+      const payload = { amount: transferAmount, type: transferType, accountName: transferAccount };
+      await axios.patch(
+        `${BASE_URL}/api/accounts/${transferFromId}/transfer-funds`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setShowTransferModal(false);
+      fetchAccounts();
+    } catch (err) {
+      console.error('Transfer funds error:', err);
+      const msg = err.response?.data?.message || 'Failed to transfer funds';
+      setError(msg);
+    }
+  };
+
   return (
     <div className="relative bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
+      
       <div className="absolute -top-2 left-6 w-16 h-1 bg-gradient-to-r from-teal-400 to-teal-600 rounded-full" />
       <h1 className="text-2xl font-bold text-gray-700 mb-4">Accounts</h1>
 
@@ -121,7 +163,11 @@ const Accounts = () => {
       <h2 className="text-lg font-medium text-gray-700 mb-4">
         Total Balance: {formatCurrency(totalBalance, userPreferredCurrency, userPreferredLocale)}
       </h2>
-
+      {error && (
+      <p className="text-red-500 text-l mb-4">
+        {error}
+      </p>
+    )}
       {/* Accounts Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
@@ -137,7 +183,7 @@ const Accounts = () => {
               <tr key={account.id} className="hover:bg-gray-50">
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
                   {editAccountId === account.id ? (
-                    <form onSubmit={handleEditAccount} className="flex flex-wrap gap-2 items-center"> 
+                    <form onSubmit={handleEditAccount} className="flex flex-wrap gap-2 items-center">
                       <input
                         type="text"
                         value={editAccountName}
@@ -155,9 +201,12 @@ const Accounts = () => {
                 <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">
                   {formatCurrency(account.amount, userPreferredCurrency, userPreferredLocale)}
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap text-sm">
-                  <button onClick={() => handleStartEdit(account)} className="p-1 rounded hover:bg-gray-100 mr-2" title="Edit">
+                <td className="px-4 py-3 whitespace-nowrap text-sm flex gap-2">
+                  <button onClick={() => handleStartEdit(account)} className="p-1 rounded hover:bg-gray-100" title="Edit">
                     <Edit2Icon size={16} className="text-gray-500" />
+                  </button>
+                  <button onClick={() => openTransferModal(account.id)} className="p-1 rounded hover:bg-gray-100" title="Transfer funds">
+                    <ArrowUpDownIcon size={16} className="text-purple-500" />
                   </button>
                   <button onClick={() => handleDeleteAccount(account.id)} className="p-1 rounded hover:bg-gray-100" title="Delete">
                     <Trash2Icon size={16} className="text-red-500" />
@@ -168,6 +217,48 @@ const Accounts = () => {
           </tbody>
         </table>
       </div>
+
+      {/* Transfer Funds Modal */}
+      {showTransferModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h3 className="text-lg font-semibold mb-4">Transfer Funds</h3>
+            <form onSubmit={handleTransferSubmit} className="flex flex-col gap-4">
+              <input
+                type="number"
+                step="0.01"
+                value={transferAmount}
+                onChange={e => setTransferAmount(e.target.value)}
+                placeholder="Amount"
+                className="border border-gray-300 text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
+                required
+              />
+              <select
+                value={transferType}
+                onChange={e => setTransferType(e.target.value)}
+                className="border border-gray-300 bg-white text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
+                required
+              >
+                <option value="Deposit">Deposit</option>
+                <option value="Withdraw">Withdraw</option>
+              </select>
+              <select
+                value={transferAccount}
+                onChange={e => setTransferAccount(e.target.value)}
+                className="border border-gray-300 bg-white text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
+                required
+              >
+                <option value="">Recipient Account</option>
+                {accounts.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
+              </select>
+              <div className="flex gap-4 justify-end">
+                <button type="submit" className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">Submit</button>
+                <button type="button" onClick={() => setShowTransferModal(false)} className="bg-gray-500 text-white text-sm px-3 py-1 rounded-lg">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

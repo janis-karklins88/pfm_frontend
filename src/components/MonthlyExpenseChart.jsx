@@ -67,7 +67,7 @@ const MonthlyExpenseChart = ({ token, BASE_URL, userPreferredCurrency, userPrefe
     maintainAspectRatio: false,
     plugins: {
       legend: { display: false },
-      title: { display: true, text: 'Monthly Expenses' },
+      title: { display: true, text: 'Monthly Expenses', padding:{ bottom:20} },
       datalabels: {
         display: ctx => ctx.dataIndex !== 0,
         anchor: 'end', align: 'top', offset: 4, clamp: true,

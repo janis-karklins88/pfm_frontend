@@ -50,8 +50,10 @@ const Savings = () => {
       try {
         await axios.delete(`${BASE_URL}/api/savings-goals/${id}`, { headers: { Authorization: `Bearer ${token}` } });
         fetchSavingsGoals();
-      } catch {
-        setError('Failed to delete savings goal');
+      } catch (err) {
+        console.error('Delete savings goal error:', err);
+        const msg = err.response?.data?.message || 'Failed to delete savings goal';
+        setError(msg);
       }
     }
   };

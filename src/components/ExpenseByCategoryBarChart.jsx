@@ -1,89 +1,134 @@
-// src/components/ExpenseByCategoryChart.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Bar } from 'react-chartjs-2';
+import { Bar, Line } from 'react-chartjs-2';
 import 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
-import { formatCurrency } from "../utils/currency";
+import { formatCurrency } from '../utils/currency';
 
 // Register datalabels plugin
+Line.register && Line.register(ChartDataLabels);
 Bar.register && Bar.register(ChartDataLabels);
 
-const ExpenseByCategoryChart = ({ token, BASE_URL, startDate, endDate, userPreferredCurrency, userPreferredLocale }) => {
+const ExpenseBreakdownChart = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale }) => {
+  const [breakdownType, setBreakdownType] = useState('Category');
   const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [accounts, setAccounts] = useState([]);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
 
+  // Load filter dates on mount (current month)
   useEffect(() => {
-    const fetchExpenseByCategory = async () => {
-      try {
-        const { data } = await axios.get(
-          `${BASE_URL}/api/reports/spending-by-category?start=${startDate}&end=${endDate}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const labels = data.map(item => item.categoryName);
-        const values = data.map(item => item.totalAmount);
-        const backgroundColors = data.map((_, i) => {
-          // preserve original palette by index
-          const palette = ['#FF6384','#36A2EB','#FFCE56','#4BC0C0','#9966FF','#FF9F40','#8E44AD','#2980B9','#27AE60','#E67E22','#C0392B','#F1C40F'];
-          return palette[i % palette.length];
-        });
+    const today = new Date();
+    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
+      .toISOString().slice(0,10);
+    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+      .toISOString().slice(0,10);
+    setStartDate(monthStart);
+    setEndDate(monthEnd);
+  }, []);
+
+  // Load accounts for Account breakdown
+  useEffect(() => {
+    axios.get(`${BASE_URL}/api/accounts`, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => setAccounts(res.data))
+      .catch(() => {});
+  }, [BASE_URL, token]);
+
+  // Fetch data when breakdownType or dates change
+  useEffect(() => {
+    if (!startDate || !endDate) return;
+    setLoading(true);
+
+    const endpoint = breakdownType === 'Account'
+      ? `${BASE_URL}/api/reports/spending-by-account?start=${startDate}&end=${endDate}`
+      : `${BASE_URL}/api/reports/spending-by-category?start=${startDate}&end=${endDate}`;
+
+    axios.get(endpoint, { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => {
+        const labels = [];
+        const values = [];
+
+        if (breakdownType === 'Account') {
+          res.data.forEach(({ accountName, totalAmount }) => {
+            labels.push(accountName);
+            values.push(Number(totalAmount));
+          });
+        } else {
+          // Expect array of { categoryName, totalAmount }
+          res.data.forEach(({ categoryName, totalAmount }) => {
+            labels.push(categoryName);
+            values.push(Number(totalAmount));
+          });
+        }
 
         setChartData({
           labels,
           datasets: [{
-            label: 'Expenses',
+            label: breakdownType,
             data: values,
-            backgroundColor: backgroundColors,
-            borderRadius: 6,
-            borderSkipped: 'bottom',
-            datalabels: {
-              anchor: 'end',
-              align: 'end',
-              formatter: v => formatCurrency(v, userPreferredCurrency, userPreferredLocale),
-              font: { weight: 'bold' },
-              color: '#374151'
-            }
+            backgroundColor: 'rgba(20,184,166,0.2)', // teal
+            borderColor: '#14B8A6',
+            borderWidth: 1
           }]
         });
-      } catch (err) {
-        console.error('Error fetching expense by category:', err);
-      }
-    };
-    if (startDate && endDate) fetchExpenseByCategory();
-  }, [startDate, endDate, token, BASE_URL, userPreferredCurrency, userPreferredLocale]);
+      })
+      .catch(err => console.error(err))
+      .finally(() => setLoading(false));
+  }, [breakdownType, startDate, endDate, token, BASE_URL]);
 
   const options = {
-    layout: { padding: { top: 20 } },
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+      padding: {
+        top: 0    // push the whole plot down so labels have room
+      }
+    },
     plugins: {
       legend: { display: false },
-      datalabels: { display: true },
+      title: { display: true, text: `Expenses by ${breakdownType}`, padding:{ bottom:20} },
+      datalabels: {
+        anchor: 'end',
+        align: 'top',
+        formatter: v => formatCurrency(v, userPreferredCurrency, userPreferredLocale),
+        font: { weight: 'bold' }
+      },
+      tooltip: {
+        callbacks: { label: ctx => formatCurrency(ctx.raw, userPreferredCurrency, userPreferredLocale) }
+      }
     },
     scales: {
-      x: {
-        offset: true,
-        grid: { display: true },
-        title: { display: false },
-        ticks: { autoSkip: false }
-      },
-      y: {
-        beginAtZero: true,
-        grid: { display: true },
-        title: { display: false },
-        ticks: { callback: v => formatCurrency(v, userPreferredCurrency, userPreferredLocale) }
-      }
+      x: { grid: { display: false } },
+      y: { beginAtZero: true, ticks: { callback: v => formatCurrency(v, userPreferredCurrency, userPreferredLocale) } }
     }
   };
 
   return (
     <div className="relative bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
-      {/* Accent Bar */}
-      <div className="absolute -top-2 left-6 w-16 h-1 bg-gradient-to-r from-teal-400 to-teal-500 rounded-full" />
-      <h3 className="text-lg font-semibold text-gray-700 mb-4">Expenses by Category</h3>
+      <div className="absolute -top-2 left-6 w-16 h-1 bg-gradient-to-r from-teal-400 to-teal-600 rounded-full" />
 
-      {chartData ? (
+      <div className="flex items-center space-x-4 mb-4">
+        <label className="text-sm font-medium text-gray-700">Expenses by:</label>
+        <select
+          value={breakdownType}
+          onChange={e => setBreakdownType(e.target.value)}
+          className="border border-gray-300 text-sm px-3 py-1 rounded-lg focus:ring-2 focus:ring-teal-300"
+        >
+          <option value="Category">Category</option>
+          <option value="Account">Account</option>
+        </select>
+      </div>
+
+      {loading ? (
+        <p className="text-sm text-gray-500">Loading...</p>
+      ) : chartData ? (
         <div className="h-64">
-          <Bar data={chartData} options={options} plugins={[ChartDataLabels]} redraw />
+          {breakdownType === 'Category' ? (
+            <Bar data={chartData} options={options} plugins={[ChartDataLabels]} />
+          ) : (
+            <Bar data={chartData} options={options} plugins={[ChartDataLabels]} />
+          )}
         </div>
       ) : (
         <p className="text-sm text-gray-500">No data available.</p>
@@ -92,4 +137,4 @@ const ExpenseByCategoryChart = ({ token, BASE_URL, startDate, endDate, userPrefe
   );
 };
 
-export default ExpenseByCategoryChart;
+export default ExpenseBreakdownChart;
