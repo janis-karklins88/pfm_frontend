@@ -67,7 +67,7 @@ const Dashboard = () => {
           {/* Summary Cards (full width) */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <SummaryCard title="Total Balance" value={totalBalance} formatCurrency={formatCurrency} change={changes.totalBalance} />
-            <SummaryCard title="Account Balance" value={totalAccountBalance} formatCurrency={formatCurrency} change={changes.totalAccountBalance} />
+            <SummaryCard title="Account Balance" value={totalAccountBalance} formatCurrency={formatCurrency} change={changes.accountBalance} />
             <SummaryCard title="Income" value={totalIncome} formatCurrency={formatCurrency} change={changes.Income} />
             <SummaryCard title="Expenses" value={totalExpenses} formatCurrency={formatCurrency} change={changes.Expense} />
             <SummaryCard title="Savings" value={totalSavings} formatCurrency={formatCurrency} change={changes.Savings} />

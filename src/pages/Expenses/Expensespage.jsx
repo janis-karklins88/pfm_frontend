@@ -6,19 +6,21 @@ import ExpenseByCategoryMonthChart from '../../components/ExpenseByCategoryMonth
 import NetMonthlyBalanceChart from '../../components/NetMonthlySavingsBalanceChart';
 import BudgetProgressBars from '../../components/BudgetProgressBars';
 import ExpenseTransactions from '../../components/ExpenseTransactions';
+import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
 
 const ExpensePage = () => {
   // Date filter state
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const { startDate: initStart, endDate: initEnd } = getCurrentMonthRange();
+  const [startDate, setStartDate] = useState(initStart);
+  const [endDate, setEndDate] = useState(initEnd);
 
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   const token = localStorage.getItem('token');
   const userPreferredCurrency = 'EUR';
   const userPreferredLocale = 'en-GB';
 
-  // Helper to format Date as yyyy-MM-dd
-  const formatDate = (date) => {
+   // Helper to format Date as yyyy-MM-dd
+   const formatDate = (date) => {
     const d = new Date(date);
     let m = '' + (d.getMonth() + 1);
     let day = '' + d.getDate();
@@ -41,18 +43,6 @@ const ExpensePage = () => {
         start = new Date(today.getFullYear(), today.getMonth() - 1, 1);
         end = new Date(today.getFullYear(), today.getMonth(), 0);
         break;
-      case '2ago':
-        start = new Date(today.getFullYear(), today.getMonth() - 2, 1);
-        end = new Date(today.getFullYear(), today.getMonth() - 1, 0);
-        break;
-      case '3ago':
-        start = new Date(today.getFullYear(), today.getMonth() - 3, 1);
-        end = new Date(today.getFullYear(), today.getMonth() - 2, 0);
-        break;
-      case '4ago':
-        start = new Date(today.getFullYear(), today.getMonth() - 4, 1);
-        end = new Date(today.getFullYear(), today.getMonth() - 3, 0);
-        break;
       default:
         start = today;
         end = today;
@@ -61,10 +51,7 @@ const ExpensePage = () => {
     setEndDate(formatDate(end));
   };
 
-  // Initialize to current month
-  useEffect(() => {
-    handlePreset('current');
-  }, []);
+
 
   return (
     <div className="p-4">
@@ -127,8 +114,6 @@ const ExpensePage = () => {
             <ExpenseByCategoryMonthChart
               token={token}
               BASE_URL={BASE_URL}
-              startDate={startDate}
-              endDate={endDate}
               userPreferredCurrency={userPreferredCurrency}
               userPreferredLocale={userPreferredLocale}
             />

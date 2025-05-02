@@ -1,43 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Bar, Line } from 'react-chartjs-2';
+import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 import { formatCurrency } from '../utils/currency';
 
 // Register datalabels plugin
-Line.register && Line.register(ChartDataLabels);
 Bar.register && Bar.register(ChartDataLabels);
 
-const ExpenseBreakdownChart = ({ token, BASE_URL, userPreferredCurrency, userPreferredLocale }) => {
+const ExpenseBreakdownChart = ({
+  token,
+  BASE_URL,
+  userPreferredCurrency,
+  userPreferredLocale,
+  startDate,
+  endDate
+}) => {
   const [breakdownType, setBreakdownType] = useState('Category');
   const [chartData, setChartData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [accounts, setAccounts] = useState([]);
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
 
-  // Load filter dates on mount (current month)
-  useEffect(() => {
-    const today = new Date();
-    const monthStart = new Date(today.getFullYear(), today.getMonth(), 1)
-      .toISOString().slice(0,10);
-    const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-      .toISOString().slice(0,10);
-    setStartDate(monthStart);
-    setEndDate(monthEnd);
-  }, []);
-
-  // Load accounts for Account breakdown
+  // Load accounts once for Account breakdown
   useEffect(() => {
     axios.get(`${BASE_URL}/api/accounts`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => setAccounts(res.data))
       .catch(() => {});
   }, [BASE_URL, token]);
 
-  // Fetch data when breakdownType or dates change
+  // Fetch data when breakdown type or props dates change
   useEffect(() => {
+    // Only proceed if both dates are provided
     if (!startDate || !endDate) return;
+
     setLoading(true);
 
     const endpoint = breakdownType === 'Account'
@@ -55,7 +50,6 @@ const ExpenseBreakdownChart = ({ token, BASE_URL, userPreferredCurrency, userPre
             values.push(Number(totalAmount));
           });
         } else {
-          // Expect array of { categoryName, totalAmount }
           res.data.forEach(({ categoryName, totalAmount }) => {
             labels.push(categoryName);
             values.push(Number(totalAmount));
@@ -65,7 +59,7 @@ const ExpenseBreakdownChart = ({ token, BASE_URL, userPreferredCurrency, userPre
         setChartData({
           labels,
           datasets: [{
-            label: breakdownType,
+            label: `Expenses by ${breakdownType}`,
             data: values,
             backgroundColor: 'rgba(20,184,166,0.2)', // teal
             borderColor: '#14B8A6',
@@ -80,22 +74,20 @@ const ExpenseBreakdownChart = ({ token, BASE_URL, userPreferredCurrency, userPre
   const options = {
     responsive: true,
     maintainAspectRatio: false,
-    layout: {
-      padding: {
-        top: 0    // push the whole plot down so labels have room
-      }
-    },
     plugins: {
       legend: { display: false },
-      title: { display: true, text: `Expenses by ${breakdownType}`, padding:{ bottom:20} },
+      title: { display: true, text: `Expenses by ${breakdownType}` },
       datalabels: {
         anchor: 'end',
-        align: 'top',
+        align: 'start',
         formatter: v => formatCurrency(v, userPreferredCurrency, userPreferredLocale),
-        font: { weight: 'bold' }
+        font: { weight: 'bold' },
+        clamp: true
       },
       tooltip: {
-        callbacks: { label: ctx => formatCurrency(ctx.raw, userPreferredCurrency, userPreferredLocale) }
+        callbacks: {
+          label: ctx => formatCurrency(ctx.raw, userPreferredCurrency, userPreferredLocale)
+        }
       }
     },
     scales: {
@@ -124,11 +116,7 @@ const ExpenseBreakdownChart = ({ token, BASE_URL, userPreferredCurrency, userPre
         <p className="text-sm text-gray-500">Loading...</p>
       ) : chartData ? (
         <div className="h-64">
-          {breakdownType === 'Category' ? (
-            <Bar data={chartData} options={options} plugins={[ChartDataLabels]} />
-          ) : (
-            <Bar data={chartData} options={options} plugins={[ChartDataLabels]} />
-          )}
+          <Bar data={chartData} options={options} plugins={[ChartDataLabels]} />
         </div>
       ) : (
         <p className="text-sm text-gray-500">No data available.</p>

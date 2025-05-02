@@ -219,46 +219,96 @@ const Accounts = () => {
       </div>
 
       {/* Transfer Funds Modal */}
-      {showTransferModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
-            <h3 className="text-lg font-semibold mb-4">Transfer Funds</h3>
-            <form onSubmit={handleTransferSubmit} className="flex flex-col gap-4">
-              <input
-                type="number"
-                step="0.01"
-                value={transferAmount}
-                onChange={e => setTransferAmount(e.target.value)}
-                placeholder="Amount"
-                className="border border-gray-300 text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
-                required
-              />
-              <select
-                value={transferType}
-                onChange={e => setTransferType(e.target.value)}
-                className="border border-gray-300 bg-white text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
-                required
-              >
-                <option value="Deposit">Deposit</option>
-                <option value="Withdraw">Withdraw</option>
-              </select>
-              <select
-                value={transferAccount}
-                onChange={e => setTransferAccount(e.target.value)}
-                className="border border-gray-300 bg-white text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
-                required
-              >
-                <option value="">Recipient Account</option>
-                {accounts.map(a => <option key={a.id} value={a.name}>{a.name}</option>)}
-              </select>
-              <div className="flex gap-4 justify-end">
-                <button type="submit" className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">Submit</button>
-                <button type="button" onClick={() => setShowTransferModal(false)} className="bg-gray-500 text-white text-sm px-3 py-1 rounded-lg">Cancel</button>
-              </div>
-            </form>
-          </div>
+{showTransferModal && (
+  <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+    <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+      <h3 className="text-lg font-semibold mb-2">Transfer Funds</h3>
+
+      {/* 1) Show the source account */}
+      <div className="mb-4 flex justify-between items-center">
+        
+        <span className="text-sm font-semibold">
+          {accounts.find(a => a.id === transferFromId)?.name || '—'} {' '}
+          {formatCurrency(
+            accounts.find(a => a.id === transferFromId)?.amount || 0,
+            userPreferredCurrency,
+            userPreferredLocale
+          )}
+        </span>
+      </div>
+
+      {/* 2) List of other accounts */}
+      <div className="mb-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">Accounts</h4>
+        <ul className="max-h-32 overflow-y-auto text-sm">
+          {accounts
+            .filter(a => a.id !== transferFromId)
+            .map(a => (
+              <li key={a.id} className="flex justify-between py-1">
+                <span className="truncate">{a.name}</span>
+                <span>
+                  {formatCurrency(a.amount, userPreferredCurrency, userPreferredLocale)}
+                </span>
+              </li>
+            ))}
+        </ul>
+      </div>
+
+      <form onSubmit={handleTransferSubmit} className="flex flex-col gap-4">
+        <input
+          type="number"
+          step="0.01"
+          value={transferAmount}
+          onChange={e => setTransferAmount(e.target.value)}
+          placeholder="Amount"
+          className="border border-gray-300 text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
+          required
+        />
+
+        <select
+          value={transferType}
+          onChange={e => setTransferType(e.target.value)}
+          className="border border-gray-300 bg-white text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
+          required
+        >
+          <option value="Deposit">Deposit from</option>
+          <option value="Withdraw">Withdraw to</option>
+        </select>
+
+        {/* Filter out the current account here too */}
+        <select
+          value={transferAccount}
+          onChange={e => setTransferAccount(e.target.value)}
+          className="border border-gray-300 bg-white text-sm px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-300"
+          required
+        >
+          <option value="">Target Account</option>
+          {accounts
+            .filter(a => a.id !== transferFromId)
+            .map(a => (
+              <option key={a.id} value={a.name}>
+                {a.name}
+              </option>
+            ))}
+        </select>
+
+        <div className="flex gap-4 justify-end">
+          <button type="submit" className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">
+            Submit
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowTransferModal(false)}
+            className="bg-gray-500 text-white text-sm px-3 py-1 rounded-lg"
+          >
+            Cancel
+          </button>
         </div>
-      )}
+      </form>
+    </div>
+  </div>
+)}
+
     </div>
   );
 };

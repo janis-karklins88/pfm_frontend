@@ -82,6 +82,7 @@ const Transactions = () => {
   const handleAllDates = () => {
     setStartDate('');
     setEndDate('');
+    
   };
 
   // delete with confirmation
@@ -122,8 +123,8 @@ const Transactions = () => {
         <button onClick={handleCurrentMonth} className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">Current Month</button>
         <button onClick={handlePreviousMonth} className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">Previous Month</button>
         <button onClick={handleAllDates} className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">All Dates</button>
-        <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="border border-gray-300 text-sm p-2 rounded-lg focus:ring-2 focus:ring-teal-300" />
-        <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="border border-gray-300 text-sm p-2 rounded-lg focus:ring-2 focus:ring-teal-300" />
+        <input type="date" value={startDate} max={endDate || undefined} onChange={(e) => setStartDate(e.target.value)} className="border border-gray-300 text-sm p-2 rounded-lg focus:ring-2 focus:ring-teal-300" />
+        <input type="date" value={endDate} min={startDate || undefined}  onChange={(e) => setEndDate(e.target.value)} className="border border-gray-300 text-sm p-2 rounded-lg focus:ring-2 focus:ring-teal-300" />
         <select value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)} className="border border-gray-300 bg-white text-sm rounded-lg px-3 py-1 shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-300">
           <option value="">All Categories</option>
           {categories.map((cat) => (<option key={cat.id} value={cat.id}>{cat.name}</option>))}
