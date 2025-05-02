@@ -159,8 +159,9 @@ const RecurringExpenseCreationForm = ({
             Create
           </button>
         </div>
-      </form>
 
+      </form>
+      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}    
       {/* Add Category Modal */}
       {showCategoryModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
@@ -185,7 +186,7 @@ const RecurringExpenseCreationForm = ({
         </div>
       )}
 
-      {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+      
     </div>
   );
 };

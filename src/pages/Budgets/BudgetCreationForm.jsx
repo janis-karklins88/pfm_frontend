@@ -144,8 +144,7 @@ const BudgetCreationForm = ({ token, BASE_URL, onBudgetCreated }) => {
             Create Budget
           </button>
         </div>
-        {/* Error */}
-        {error && <p className="w-full text-red-500 text-sm mt-2">{error}</p>}
+
       </form>
 
       {/* Add Category Modal */}
@@ -160,6 +159,11 @@ const BudgetCreationForm = ({ token, BASE_URL, onBudgetCreated }) => {
               placeholder="Category Name"
               className="w-full border border-gray-300 text-sm px-3 py-1 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-teal-300"
             />
+            {error && (
+             <p className="text-red-500 text-sm mb-4">
+               {error}
+             </p>
+            )}
             <div className="flex gap-2 justify-end">
               <button onClick={handleAddCategory} className="bg-teal-600 text-white text-sm px-3 py-1.5 rounded-lg">
                 Save

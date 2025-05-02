@@ -155,7 +155,11 @@ const Transactions = () => {
             {transactions.length === 0 ? (
               <tr><td colSpan="7" className="px-4 py-4 text-center text-sm text-gray-500">No transactions found.</td></tr>
             ) : (
-              transactions.map((txn) => (
+              transactions.map((txn) => {
+                const name = txn.category?.name;
+                const hideDelete = ['Savings', 'Fund Transfer', 'Initial account opening']
+                .includes(name);
+                return (
                 <tr key={txn.id} className="hover:bg-gray-50">
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{formatDate(txn.date)}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-700">{formatCurrency(txn.amount, userPreferredCurrency, userPreferredLocale)}</td>
@@ -163,7 +167,9 @@ const Transactions = () => {
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{txn.type}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-600">{txn.account?.name}</td>
                   <td className="px-4 py-3 text-sm text-gray-600 truncate">{txn.description}</td>
+
                   <td className="px-4 py-3 whitespace-nowrap text-sm">
+                  {!hideDelete && (
                     <button
                       onClick={() => handleDeleteConfirm(txn.id)}
                       className="p-2 rounded hover:bg-gray-100"
@@ -171,9 +177,11 @@ const Transactions = () => {
                     >
                       <Trash2Icon size={16} className="text-red-500" />
                     </button>
+                  )}
                   </td>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>
