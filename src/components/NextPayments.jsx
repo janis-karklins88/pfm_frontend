@@ -56,7 +56,7 @@ const NextPayments = ({ token, BASE_URL, userPreferredCurrency, userPreferredLoc
               </div>
 
               {/* Amount */}
-              <div className="text-sm font-medium text-right w-1/6 text-purple-600">
+              <div className="text-sm font-medium text-right w-1/6 text-blue-600">
                 {formatCurrency(payment.amount, userPreferredCurrency, userPreferredLocale)}
               </div>
             </div>

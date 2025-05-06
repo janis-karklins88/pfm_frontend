@@ -4,13 +4,15 @@ import RecurringExpenseCreationForm from './RecurringExpenseCreationForm';
 import { formatCurrency } from '../../utils/currency';
 import { getCurrentMonthRange, getNextMonthRange } from '../../utils/dateUtils';
 import { PauseIcon, PlayIcon, Trash2Icon, Edit2Icon, CheckIcon } from 'lucide-react';
+import { useSettings } from "../../contexts/SettingsContext";
+
 
 const RecurringExpenses = () => {
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   const token = localStorage.getItem('token');
 
-  const userPreferredCurrency = 'EUR';
-  const userPreferredLocale = 'en-GB';
+  const { currency: userPreferredCurrency } = useSettings();
+  const userPreferredLocale = navigator.language;
 
   const [recurringExpenses, setRecurringExpenses] = useState([]);
   const [accounts, setAccounts] = useState([]);

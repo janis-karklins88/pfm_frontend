@@ -11,6 +11,7 @@ import BalanceBreakdownChart from '../../components/BalanceBreakdownChart';
 import SavingsGoalsProgress from '../../components/SavingsGoalsProgress';
 import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
 import { formatCurrency } from '../../utils/currency';
+import { useSettings } from "../../contexts/SettingsContext";
 
 const Dashboard = () => {
   // Date range state
@@ -28,7 +29,14 @@ const Dashboard = () => {
 
   const token = localStorage.getItem('token');
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
+  const { currency: userPreferredCurrency } = useSettings();
+  const userPreferredLocale = navigator.language;
 
+  //wraper
+  const formatCurr = (value) =>
+    formatCurrency(value, userPreferredCurrency, userPreferredLocale);
+
+ 
   // Fetch summary and change data
   useEffect(() => {
     axios.get(`${BASE_URL}/api/reports/summary?start=${startDate}&end=${endDate}`, { headers: { Authorization: `Bearer ${token}` } })
@@ -53,9 +61,7 @@ const Dashboard = () => {
       .then(res => setTotalAccountBalance(res.data));
   }, [startDate, endDate, token, BASE_URL]);
 
-  const handleCurrentMonth = () => { const { startDate, endDate } = getCurrentMonthRange(); setStartDate(startDate); setEndDate(endDate); };
-  const handlePreviousMonth = () => { const { startDate, endDate } = getPreviousMonthRange(); setStartDate(startDate); setEndDate(endDate); };
-
+ 
   return (
     <div className="p-4">
       {/* Main flex: 2 columns */}
@@ -66,33 +72,48 @@ const Dashboard = () => {
 
           {/* Summary Cards (full width) */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <SummaryCard title="Total Balance" value={totalBalance} formatCurrency={formatCurrency} change={changes.totalBalance} />
-            <SummaryCard title="Account Balance" value={totalAccountBalance} formatCurrency={formatCurrency} change={changes.accountBalance} />
-            <SummaryCard title="Income" value={totalIncome} formatCurrency={formatCurrency} change={changes.Income} />
-            <SummaryCard title="Expenses" value={totalExpenses} formatCurrency={formatCurrency} change={changes.Expense} />
-            <SummaryCard title="Savings" value={totalSavings} formatCurrency={formatCurrency} change={changes.Savings} />
+            <SummaryCard title="Total Balance" value={totalBalance} formatCurrency={formatCurr} change={changes.totalBalance} />
+            <SummaryCard title="Account Balance" value={totalAccountBalance} formatCurrency={formatCurr} change={changes.accountBalance} />
+            <SummaryCard title="Income" value={totalIncome} formatCurrency={formatCurr} change={changes.Income} />
+            <SummaryCard title="Expenses" value={totalExpenses} formatCurrency={formatCurr} change={changes.Expense} />
+            <SummaryCard title="Savings" value={totalSavings} formatCurrency={formatCurr} change={changes.Savings} />
           </div>
 
           {/* Row 1: Expense by Category + Cash Flow */}
           <div className="flex gap-4">
             <div className="flex-1">
-              <ExpenseByCategoryChartVsPrev token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} />
+              <ExpenseByCategoryChartVsPrev 
+              token={token} 
+              BASE_URL={BASE_URL} 
+              startDate={startDate} 
+              endDate={endDate}
+              userPreferredCurrency={userPreferredCurrency}
+              userPreferredLocale={userPreferredLocale} />
             </div>
             <div className="flex-1">
-              <CashFlow token={token} BASE_URL={BASE_URL} userPreferredCurrency="EUR" userPreferredLocale="en-GB" />
+              <CashFlow token={token} BASE_URL={BASE_URL} userPreferredCurrency={userPreferredCurrency} userPreferredLocale={userPreferredLocale} />
             </div>
           </div>
 
           {/* Row 2: Budget (1/2), Savings Goals (1/4), Balance Breakdown (1/4) */}
           <div className="flex gap-4">
             <div className="w-1/2">
-              <BudgetBarChart token={token} BASE_URL={BASE_URL} startDate={startDate} endDate={endDate} userPreferredCurrency="EUR" />
+              <BudgetBarChart 
+              token={token} 
+              BASE_URL={BASE_URL} 
+              startDate={startDate} 
+              endDate={endDate} 
+              userPreferredCurrency={userPreferredCurrency} 
+              userPreferredLocale={userPreferredLocale} />
             </div>
             <div className="w-1/4">
-              <SavingsGoalsProgress token={token} BASE_URL={BASE_URL} userPreferredCurrency="EUR" userPreferredLocale="en-GB" />
+              <SavingsGoalsProgress token={token} BASE_URL={BASE_URL} userPreferredCurrency={userPreferredCurrency} userPreferredLocale={userPreferredLocale} />
             </div>
             <div className="w-1/4">
-              <BalanceBreakdownChart token={token} BASE_URL={BASE_URL} />
+              <BalanceBreakdownChart token={token} 
+              BASE_URL={BASE_URL}
+              userPreferredCurrency={userPreferredCurrency}
+              userPreferredLocale={userPreferredLocale} />
             </div>
           </div>
 
@@ -100,8 +121,8 @@ const Dashboard = () => {
 
         {/* Right Column: Recent + Next Payments stacked */}
         <div className="w-1/4 flex flex-col space-y-4">
-          <RecentTransactions token={token} BASE_URL={BASE_URL} userPreferredCurrency="EUR" userPreferredLocale="en-GB" />
-          <NextPayments token={token} BASE_URL={BASE_URL} />
+          <RecentTransactions token={token} BASE_URL={BASE_URL} userPreferredCurrency={userPreferredCurrency} userPreferredLocale={userPreferredLocale} />
+          <NextPayments token={token} BASE_URL={BASE_URL} userPreferredCurrency={userPreferredCurrency} userPreferredLocale={userPreferredLocale}/>
         </div>
 
       </div>

@@ -4,12 +4,18 @@ import axios from 'axios';
 import { Bar } from 'react-chartjs-2';
 import 'chart.js/auto';
 import ChartDataLabels from 'chartjs-plugin-datalabels';
+import { formatCurrency } from "../utils/currency";
+
 
 // Register datalabels plugin to disable labels across chart
 Bar.register && Bar.register(ChartDataLabels);
 
-const BudgetBarChart = ({ token, BASE_URL, startDate, endDate }) => {
+const BudgetBarChart = ({ token, BASE_URL, startDate, endDate, userPreferredCurrency, userPreferredLocale }) => {
   const [budgetItems, setBudgetItems] = useState([]);
+
+  //wraper
+  const formatCurr = (value) =>
+    formatCurrency(value, userPreferredCurrency, userPreferredLocale);
 
   // Fetch budgets and spent amounts
   const fetchBudgetData = async () => {
@@ -82,6 +88,8 @@ const BudgetBarChart = ({ token, BASE_URL, startDate, endDate }) => {
       legend: { position: 'top', align: 'end', labels: { boxWidth: 12, padding: 8 } },
       datalabels: { display: false }, // disable all labels
       title: { display: false, text: 'Budget vs. Spending', font: { size: 14 } },
+      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${formatCurr(ctx.parsed.y)}`} },
+      
     },
     scales: {
       x: {
@@ -92,6 +100,7 @@ const BudgetBarChart = ({ token, BASE_URL, startDate, endDate }) => {
       y: {
         beginAtZero: true,
         title: { display: false, text: 'Amount', font: { size: 12 } },
+        ticks: { callback: value => formatCurr(value),}
       },
     },
   };
