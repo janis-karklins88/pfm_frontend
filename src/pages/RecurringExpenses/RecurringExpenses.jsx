@@ -5,11 +5,12 @@ import { formatCurrency } from '../../utils/currency';
 import { getCurrentMonthRange, getNextMonthRange } from '../../utils/dateUtils';
 import { PauseIcon, PlayIcon, Trash2Icon, Edit2Icon, CheckIcon } from 'lucide-react';
 import { useSettings } from "../../contexts/SettingsContext";
+import { useAuth } from  "../../contexts/AuthContext";
 
 
 const RecurringExpenses = () => {
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-  const token = localStorage.getItem('token');
+  const { token } = useAuth();
 
   const { currency: userPreferredCurrency } = useSettings();
   const userPreferredLocale = navigator.language;

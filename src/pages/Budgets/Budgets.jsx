@@ -4,10 +4,12 @@ import BudgetCreationForm from './BudgetCreationForm';
 import { formatCurrency } from '../../utils/currency';
 import { getCurrentMonthRange, getNextMonthRange, formatDate } from '../../utils/dateUtils';
 import { Edit2Icon, CheckIcon, Trash2Icon } from 'lucide-react';
+import { useSettings } from "../../contexts/SettingsContext";
+import { useAuth } from  "../../contexts/AuthContext";
 
 const Budgets = () => {
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-  const token = localStorage.getItem('token');
+  
 
   // State
   const [budgets, setBudgets] = useState([]);
@@ -20,8 +22,9 @@ const Budgets = () => {
   const [showBudgetForm, setShowBudgetForm] = useState(false);
   const [error, setError] = useState('');
 
-  const userPreferredCurrency = 'EUR';
-  const userPreferredLocale = 'en-GB';
+  const { token } = useAuth();
+  const { currency: userPreferredCurrency } = useSettings();
+  const userPreferredLocale = navigator.language;
 
   // Fetch budgets and spent amounts
   const fetchBudgets = async () => {

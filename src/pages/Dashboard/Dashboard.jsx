@@ -12,6 +12,7 @@ import SavingsGoalsProgress from '../../components/SavingsGoalsProgress';
 import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
 import { formatCurrency } from '../../utils/currency';
 import { useSettings } from "../../contexts/SettingsContext";
+import { useAuth } from  "../../contexts/AuthContext";
 
 const Dashboard = () => {
   // Date range state
@@ -27,7 +28,7 @@ const Dashboard = () => {
   const [totalAccountBalance, setTotalAccountBalance] = useState(0);
   const [changes, setChanges] = useState({});
 
-  const token = localStorage.getItem('token');
+  const { token } = useAuth();
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
   const { currency: userPreferredCurrency } = useSettings();
   const userPreferredLocale = navigator.language;

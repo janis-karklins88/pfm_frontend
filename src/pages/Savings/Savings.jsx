@@ -3,10 +3,14 @@ import axios from 'axios';
 import SavingsGoalCreationForm from './SavingsGoalCreationForm';
 import { formatCurrency } from "../../utils/currency";
 import { CheckIcon, Edit2Icon, Trash2Icon, ArrowUpDownIcon } from 'lucide-react';
+import { useSettings } from "../../contexts/SettingsContext";
+import { useAuth } from  "../../contexts/AuthContext";
 
 const Savings = () => {
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-  const token = localStorage.getItem('token');
+  const { token } = useAuth();
+  const { currency: userPreferredCurrency } = useSettings();
+  const userPreferredLocale = navigator.language;
 
   const [savingsGoals, setSavingsGoals] = useState([]);
   const [accounts, setAccounts] = useState([]);
@@ -22,8 +26,6 @@ const Savings = () => {
   const [editGoalId, setEditGoalId] = useState(null);
   const [editGoalAmount, setEditGoalAmount] = useState('');
 
-  const userPreferredCurrency = 'EUR';
-  const userPreferredLocale = 'en-GB';
 
   const fetchSavingsGoals = async () => {
     try {

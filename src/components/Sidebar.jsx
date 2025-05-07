@@ -1,5 +1,6 @@
 // src/components/Sidebar.jsx
 import React, { useState, useEffect } from 'react';
+import { useAuth } from  "../contexts/AuthContext";
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   GridIcon,
@@ -28,7 +29,9 @@ const navItems = [
 const Sidebar = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState('');
-  const token = localStorage.getItem('token');
+  const { token } = useAuth();
+
+  const { logout } = useAuth();
 
   useEffect(() => {
     if (token) {
@@ -74,7 +77,7 @@ const Sidebar = () => {
       {/* Bottom: Logout + Profile */}
       <div className="px-2">
         <button
-          onClick={handleLogout}
+          onClick={logout}
           className="flex items-center gap-2 w-full px-3 py-2 mb-4 rounded-lg hover:bg-gray-700 transition-colors"
         >
           <LogOut size={16} />

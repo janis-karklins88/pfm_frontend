@@ -7,6 +7,8 @@ import NetMonthlyBalanceChart from '../../components/NetMonthlySavingsBalanceCha
 import BudgetProgressBars from '../../components/BudgetProgressBars';
 import ExpenseTransactions from '../../components/ExpenseTransactions';
 import { getCurrentMonthRange, getPreviousMonthRange } from '../../utils/dateUtils';
+import { useAuth } from  "../../contexts/AuthContext";
+import { useSettings } from "../../contexts/SettingsContext";
 
 const ExpensePage = () => {
   // Date filter state
@@ -15,9 +17,9 @@ const ExpensePage = () => {
   const [endDate, setEndDate] = useState(initEnd);
 
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-  const token = localStorage.getItem('token');
-  const userPreferredCurrency = 'EUR';
-  const userPreferredLocale = 'en-GB';
+  const { token } = useAuth();
+  const { currency: userPreferredCurrency } = useSettings();
+  const userPreferredLocale = navigator.language;
 
    // Helper to format Date as yyyy-MM-dd
    const formatDate = (date) => {

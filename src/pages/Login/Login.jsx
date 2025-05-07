@@ -1,6 +1,7 @@
 // src/pages/Login/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from  "../../contexts/AuthContext";
 import axios from 'axios';
 
 const Login = () => {
@@ -8,6 +9,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -24,9 +26,9 @@ const Login = () => {
       // Remove the "Bearer " prefix if it exists
       const token = rawToken.startsWith('Bearer ') ? rawToken.substring(7) : rawToken;
   
-      // Store the token and the username in local storage
-      localStorage.setItem('token', token);
-      localStorage.setItem('username', username);
+      // Store the token
+      login(token);
+      
   
       // Navigate to dashboard or another protected route after successful login
       navigate('/dashboard');

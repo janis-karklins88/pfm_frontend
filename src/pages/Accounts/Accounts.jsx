@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { formatCurrency } from "../../utils/currency";
 import { Trash2Icon, Edit2Icon, ArrowUpDownIcon } from 'lucide-react';
+import { useSettings } from "../../contexts/SettingsContext";
+import { useAuth } from  "../../contexts/AuthContext";
 
 const Accounts = () => {
   const [accounts, setAccounts] = useState([]);
@@ -18,10 +20,10 @@ const Accounts = () => {
   const [transferType, setTransferType] = useState('Deposit'); // or Withdraw
   const [transferAccount, setTransferAccount] = useState('');
 
-  const userPreferredCurrency = 'EUR';
-  const userPreferredLocale = 'en-GB';
   const BASE_URL = import.meta.env.VITE_BACKEND_URL;
-  const token = localStorage.getItem('token');
+  const { token } = useAuth();
+  const { currency: userPreferredCurrency } = useSettings();
+  const userPreferredLocale = navigator.language;
 
   useEffect(() => {
     fetchAccounts();

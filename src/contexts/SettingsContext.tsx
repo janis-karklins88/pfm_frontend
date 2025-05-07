@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
+import { useAuth } from "./AuthContext";
 
 interface Settings {
   currency: string;
@@ -8,31 +9,36 @@ interface Settings {
 const SettingsContext = createContext<Settings | null>(null);
 
 export const SettingsProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [settings, setSettings] = useState<Settings | null>(null);
-  const token = localStorage.getItem("token");
+
+  const { token } = useAuth();
+  const defaultSettings: Settings = { currency: "EUR" };
+  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [loading, setLoading] = useState<boolean>(false);
+  
 
   useEffect(() => {
     if(!token){
-      setSettings(null);
+      setSettings(defaultSettings);
+      setLoading(false);
       return;
     }
 
-    setSettings(null);
+    setLoading(true);
 
     axios
       .get<Settings>("/api/users/settings", {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
+        headers: { Authorization: `Bearer ${token}` }
       })
       .then(res => setSettings(res.data))
       .catch(err => {
         console.error("Failed to load settings", err);
-        // you could fallback to a default here, e.g. { currency: "EUR" }
-        setSettings({ currency: "EUR" });
-      });
+        setSettings(defaultSettings);
+      })
+      .finally(() => setLoading(false));
   }, [token]);
 
   // You can render a spinner if settings are still null
-  if (!settings) return <div>Loading user preferences…</div>;
+  if (loading) return <div>Loading user preferences…</div>;
 
   return (
     <SettingsContext.Provider value={settings}>
