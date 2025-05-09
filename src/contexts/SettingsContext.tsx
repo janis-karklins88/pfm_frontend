@@ -1,47 +1,57 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+// src/contexts/SettingsContext.tsx
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  ReactNode,
+} from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 
 interface Settings {
   currency: string;
+  // …add other settings here
 }
 
-const SettingsContext = createContext<Settings | null>(null);
+interface SettingsContextType extends Settings {
+  refreshSettings: () => void;
+}
 
-export const SettingsProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
+const defaultSettings: Settings = { currency: "EUR" };
 
+const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+
+export const SettingsProvider = ({ children }: { children: ReactNode }) => {
   const { token } = useAuth();
-  const defaultSettings: Settings = { currency: "EUR" };
   const [settings, setSettings] = useState<Settings>(defaultSettings);
-  const [loading, setLoading] = useState<boolean>(false);
-  
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if(!token){
+  // central load function
+  const loadSettings = () => {
+    if (!token) {
       setSettings(defaultSettings);
-      setLoading(false);
       return;
     }
-
     setLoading(true);
-
     axios
       .get<Settings>("/api/users/settings", {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       })
-      .then(res => setSettings(res.data))
-      .catch(err => {
-        console.error("Failed to load settings", err);
-        setSettings(defaultSettings);
-      })
+      .then((r) => setSettings(r.data))
+      .catch(() => setSettings(defaultSettings))
       .finally(() => setLoading(false));
-  }, [token]);
+  };
 
-  // You can render a spinner if settings are still null
-  if (loading) return <div>Loading user preferences…</div>;
+  // initial & token-change fetch
+  useEffect(loadSettings, [token]);
+
+  if (loading) return <div>Loading preferences…</div>;
 
   return (
-    <SettingsContext.Provider value={settings}>
+    <SettingsContext.Provider
+      value={{ ...settings, refreshSettings: loadSettings }}
+    >
       {children}
     </SettingsContext.Provider>
   );
