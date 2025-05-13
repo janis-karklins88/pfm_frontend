@@ -7,7 +7,7 @@ import { useSettings } from "../../contexts/SettingsContext";
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
 export default function SettingsPage() {
-  const { token } = useAuth();
+  const { token, login } = useAuth();
   const { currency: currentCurrency, locale: currentLocale, refreshSettings } = useSettings();
 
   // Currency selection state
@@ -64,7 +64,11 @@ export default function SettingsPage() {
         { username },
         { headers: { Authorization: `Bearer ${token}` } }
       )
-      .then(res => setUsernameMsg(res.data || "Username updated"))
+      .then(res => {
+        const newToken = res.data.token;
+        login(newToken);
+        setUsernameMsg("Username updated");
+      })
       .catch(() => setUsernameMsg("Failed to update username"));
   };
 
