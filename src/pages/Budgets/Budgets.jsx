@@ -31,8 +31,8 @@ const Budgets = () => {
     try {
       let url = `${BASE_URL}/api/budgets`;
       const params = new URLSearchParams();
-      if (startDate) params.append('filterStart', startDate);
-      if (endDate) params.append('filterEnd', endDate);
+      if (startDate) params.append('startDate', startDate);
+      if (endDate) params.append('endDate', endDate);
       if (params.toString()) url += `?${params.toString()}`;
 
       const res = await axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
@@ -134,12 +134,14 @@ const Budgets = () => {
           value={startDate}
           onChange={e => setStartDate(e.target.value)}
           className="border border-gray-300 text-sm px-3 py-1 rounded-lg focus:ring-2 focus:ring-teal-300"
+          max={endDate || undefined}
         />
         <input
           type="date"
           value={endDate}
           onChange={e => setEndDate(e.target.value)}
           className="border border-gray-300 text-sm px-3 py-1 rounded-lg focus:ring-2 focus:ring-teal-300"
+          min={startDate || undefined}
         />
       </div>
 

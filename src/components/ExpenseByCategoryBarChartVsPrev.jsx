@@ -17,19 +17,34 @@ const ExpenseByCategoryChartVsPrev = ({ token, BASE_URL, startDate, endDate, use
     const fetchData = async () => {
       try {
         // Fetch current and previous month data
-        const currReq = axios.get(
-          `${BASE_URL}/api/reports/spending-by-category?start=${startDate}&end=${endDate}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        const { startDate: prevStart, endDate: prevEnd } = getPreviousMonthRange();
-        const prevReq = axios.get(
-          `${BASE_URL}/api/reports/spending-by-category?start=${prevStart}&end=${prevEnd}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const axiosOpts = {
+        headers: { Authorization: `Bearer ${token}` },
+        params: {
+          startDate: startDate.toString(),  // e.g. "2025-05-01"
+          endDate:   endDate.toString(),    // e.g. "2025-05-31"
+        },
+      };
 
-        const [currRes, prevRes] = await Promise.all([currReq, prevReq]);
-        const curr = currRes.data;
-        const prev = prevRes.data;
+      // Current month
+      const currReq = axios.get(
+        `${BASE_URL}/api/reports/spending-by-category`,
+        axiosOpts
+      );
+
+      // Previous month
+      const { startDate: prevStart, endDate: prevEnd } =
+        getPreviousMonthRange();
+      const prevReq = axios.get(
+        `${BASE_URL}/api/reports/spending-by-category`,
+        {
+          ...axiosOpts,
+          params: { startDate: prevStart.toString(), endDate: prevEnd.toString() },
+        }
+      );
+
+      const [currRes, prevRes] = await Promise.all([currReq, prevReq]);
+      const curr = currRes.data;
+      const prev = prevRes.data;
 
         // Combine category labels
         const labels = Array.from(
@@ -78,7 +93,7 @@ const ExpenseByCategoryChartVsPrev = ({ token, BASE_URL, startDate, endDate, use
     };
 
     if (startDate && endDate) fetchData();
-  }, [token, BASE_URL, startDate, endDate]);
+  }, [token, startDate, endDate]);
 
   return (
     <div className="relative bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">

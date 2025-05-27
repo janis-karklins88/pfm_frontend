@@ -36,8 +36,8 @@ const ExpenseBreakdownChart = ({
     setLoading(true);
 
     const endpoint = breakdownType === 'Account'
-      ? `${BASE_URL}/api/reports/spending-by-account?start=${startDate}&end=${endDate}`
-      : `${BASE_URL}/api/reports/spending-by-category?start=${startDate}&end=${endDate}`;
+      ? `${BASE_URL}/api/reports/spending-by-account?startDate=${startDate}&endDate=${endDate}`
+      : `${BASE_URL}/api/reports/spending-by-category?startDate=${startDate}&endDate=${endDate}`;
 
     axios.get(endpoint, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => {

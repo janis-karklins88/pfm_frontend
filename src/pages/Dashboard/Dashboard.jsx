@@ -40,11 +40,24 @@ const Dashboard = () => {
  
   // Fetch summary and change data
   useEffect(() => {
-    axios.get(`${BASE_URL}/api/reports/summary?start=${startDate}&end=${endDate}`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(res => {
-        setTotalIncome(res.data.totalIncome);
-        setTotalExpenses(res.data.totalSpending);
-      });
+    const endpoint = `${BASE_URL}/api/reports/summary`;
+    const params = {startDate, endDate };
+    const config = {
+    headers: { Authorization: `Bearer ${token}` },
+    params
+    };
+
+    axios.get(endpoint, config)
+    .then(response => {
+      const { totalIncome, totalSpending } = response.data;
+      setTotalIncome(totalIncome);
+      setTotalExpenses(totalSpending);
+    })
+    .catch(err => {
+      console.error('Error fetching summary:', err);
+    });
+
+
 
     axios.get(`${BASE_URL}/api/reports/balance`, { headers: { Authorization: `Bearer ${token}` } })
       .then(res => setTotalBalance(res.data));
