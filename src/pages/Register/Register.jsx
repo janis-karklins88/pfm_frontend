@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../../services/auth';
+import { Link } from "react-router-dom";
 
 const Register = () => {
   const [username, setName] = useState('');
@@ -70,6 +71,15 @@ const Register = () => {
         >
           Register
         </button>
+        <div className="text-gray-700 mt-2 text-center text-sm">
+          Already have account?{" "}
+                    <Link
+                    to="/login"
+                    className=" hover:underline text-blue-600"
+                    >
+                    Login
+                    </Link>
+        </div>
       </form>
     </div>
   );

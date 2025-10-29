@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from  "../../contexts/AuthContext";
 import axios from 'axios';
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const [username, setName] = useState('');
@@ -21,9 +22,9 @@ const Login = () => {
       };
   
       const response = await axios.post(url, credentials);
-      // response.data is expected to be something like "Bearer <token>"
+      
       const rawToken = response.data;
-      // Remove the "Bearer " prefix if it exists
+      // Remove the "Bearer " prefix
       const token = rawToken.startsWith('Bearer ') ? rawToken.substring(7) : rawToken;
   
       // Store the token
@@ -64,12 +65,22 @@ const Login = () => {
             required
           />
         </div>
+        
         <button
           type="submit"
           className="w-full bg-gray-700 text-white py-2 rounded hover:bg-gray-800 active:scale-98 transition transform duration-100 ease-in-out"
         >
           Login
         </button>
+        <div className="text-gray-700 mt-2 text-center text-sm">
+            Do not have an account?{" "}
+          <Link
+          to="/register"
+          className=" hover:underline text-blue-600"
+          >
+    Register
+  </Link>
+        </div>
       </form>
       
     </div>
