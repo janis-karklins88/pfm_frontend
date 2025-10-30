@@ -1,4 +1,5 @@
 // src/components/Sidebar.jsx
+import logo from "../assets/logo.png";
 import React, { useState, useEffect } from 'react';
 import { useAuth } from  "../contexts/AuthContext";
 import { NavLink, useNavigate } from 'react-router-dom';
@@ -52,9 +53,13 @@ const Sidebar = () => {
     <aside className="flex flex-col h-screen justify-between bg-[#151925] text-gray-300 w-52 p-3">
       {/* Top: Logo + Nav */}
       <div>
-        <div className="mb-6 px-2">
-          <span className="text-xl font-bold text-white">FinanceManager</span>
-        </div>
+      <div className="mb-3 px-2 flex items-center justify-center">
+        <img
+          src={logo}
+          alt="Finance Manager logo"
+          className="h-19 w-auto object-contain"
+        />
+      </div>
         <nav className="flex-1 overflow-y-auto">
           <ul className="space-y-1">
             {navItems.map(({ to, label, icon: Icon }) => (

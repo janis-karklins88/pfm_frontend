@@ -22,6 +22,8 @@ const SavingsGoalsProgress = ({ token, BASE_URL, userPreferredCurrency, userPref
     fetchGoals();
   }, [token, BASE_URL]);
 
+  
+
   return (
     <div className="relative bg-white rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-shadow duration-300">
       {/* Accent Bar */}
@@ -36,16 +38,15 @@ const SavingsGoalsProgress = ({ token, BASE_URL, userPreferredCurrency, userPref
           {savingsGoals.map(goal => {
             const { id, name, currentAmount, targetAmount } = goal;
             const percentage = targetAmount > 0 ? Math.min(100, (currentAmount / targetAmount) * 100) : 0;
+            const amountText = `${formatCurrency(currentAmount, userPreferredCurrency, userPreferredLocale)} / ${formatCurrency(targetAmount, userPreferredCurrency, userPreferredLocale)}`;
+            const forceStack = (name?.length || 0) + amountText.length > 33; // tweak threshold
 
             return (
               <div key={id}>
-                <div className="flex justify-between items-center mb-2 text-sm font-medium text-gray-700">
-                  <span className="truncate">{name}</span>
-                  <span>
-                    {formatCurrency(currentAmount, userPreferredCurrency, userPreferredLocale)}{' '}
-                    / {formatCurrency(targetAmount, userPreferredCurrency, userPreferredLocale)}
-                  </span>
-                </div>
+                <div className={`mb-2 text-sm font-medium text-gray-700 ${forceStack ? 'flex flex-col gap-1' : 'flex items-center justify-between'}`}>
+  <span className={`${forceStack ? 'truncate' : 'min-w-0 truncate'}`}>{name}</span>
+  <span className={`${forceStack ? 'whitespace-nowrap' : 'shrink-0 whitespace-nowrap'}`}>{amountText}</span>
+</div>
                 <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-teal-500 h-2"
