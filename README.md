@@ -146,17 +146,17 @@ Recurring Expenses	Manage automated or repeating expenses
 ### Dashboard
 ![Dashboard](./docs/dashboard.png)
 
-### Transactions
-![Transactions](./docs/expenses.png)
+### Expenses
+![Expenses](./docs/expenses.png)
 
-### Budgets
-![Budgets](./docs/autopayments.png)
+### RecurringPayments
+![RecurringPayments](./docs/autopayments.png)
 
-### Budgets
-![Budgets](./docs/login.png)
+### Login
+![Login](./docs/login.png)
 
-### Budgets
-![Budgets](./docs/settings.png)
+### Settings
+![Settings](./docs/settings.png)
 
 ## Author
 Jānis Kārkliņš
